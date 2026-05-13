@@ -135,11 +135,6 @@ export default function App() {
               {l}
             </a>
           ))}
-          <a href="mailto:guptapranit34@gmail.com"
-            className="px-5 py-2 font-sans text-[0.7rem] font-bold text-white uppercase tracking-widest rounded-full bg-blue-600/20 border border-blue-500/30 hover:bg-blue-600/40 transition-all duration-300"
-          >
-            Hire Me
-          </a>
         </div>
       </nav>
 
@@ -150,10 +145,10 @@ export default function App() {
         <section id="about" className="section" style={{ background: '#000000' }}>
           <div className="section-inner">
             <Reveal><p className="eyebrow">Who I Am</p></Reveal>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '4rem', alignItems: 'center' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-8 lg:gap-16 items-center">
               <TerminalWindow />
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   { Icon: Brain, title: 'AI Systems', desc: 'Intelligent workflows using ML, RAG pipelines, and modern AI frameworks.' },
                   { Icon: Layers, title: 'Full Stack', desc: 'Scalable systems using React, FastAPI, PostgreSQL, and modern architecture.' },

@@ -180,16 +180,14 @@ export default function ScrollExpandHero({
       </div>
 
       {/* ─── LEFT: Editorial Headline ─── */}
-      <motion.div style={{
-        position: 'fixed',
-        top: 'calc(50% - 210px)',
-        left: '5vw',
-        zIndex: 20,
-        pointerEvents: 'none',
-        opacity: fade,
-        x: -v * 80,
-        maxWidth: '520px',
-      }}>
+      <motion.div 
+        className="fixed z-20 pointer-events-none max-w-[520px] left-[5vw] lg:left-[5vw] right-[5vw] lg:right-auto text-center lg:text-left"
+        style={{
+          top: 'calc(50% - 210px)',
+          opacity: fade,
+          x: -v * 80,
+        }}
+      >
         <p style={{
           fontFamily: "'Inter', sans-serif",
           fontSize: '11px',
@@ -231,20 +229,13 @@ export default function ScrollExpandHero({
       </motion.div>
 
       {/* ─── RIGHT: Info Cards ─── */}
-      <motion.div style={{
-        position: 'fixed',
-        top: 'calc(50% - 210px)',
-        right: '5vw',
-        zIndex: 20,
-        pointerEvents: 'none',
-        opacity: fade,
-        x: v * 80,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0',
-        width: '20vw',
-        minWidth: '220px',
-      }}>
+      <motion.div 
+        className="fixed z-20 pointer-events-none w-[20vw] min-w-[220px] right-[5vw] hidden lg:flex flex-col gap-0"
+        style={{
+          top: 'calc(50% - 210px)',
+          opacity: fade,
+          x: v * 80,
+        }}>
         {rightCards.map((card, i) => (
           <motion.div
             key={card.label}

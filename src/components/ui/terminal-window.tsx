@@ -16,16 +16,7 @@ export default function TerminalWindow() {
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      style={{ 
-        position: 'relative',
-        borderRadius: 20, 
-        border: '1px solid rgba(125, 211, 252, 0.15)', 
-        overflow: 'hidden', 
-        background: 'rgba(5, 8, 22, 0.8)', 
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 20px rgba(125, 211, 252, 0.05)',
-        width: '100%',
-        minHeight: '400px'
-      }}
+      className="relative rounded-[20px] border border-[rgba(125,211,252,0.15)] overflow-hidden bg-[rgba(5,8,22,0.8)] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),0_0_20px_rgba(125,211,252,0.05)] w-full min-h-[350px] lg:min-h-[400px]"
     >
       {/* Scanline Effect */}
       <div style={{
@@ -67,7 +58,7 @@ export default function TerminalWindow() {
       </div>
       
       {/* Terminal Content */}
-      <div style={{ padding: '3.5rem 2.5rem', position: 'relative', zIndex: 10 }}>
+      <div className="p-6 md:p-10 lg:p-14 relative z-10">
         <motion.h3 
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
