@@ -40,7 +40,8 @@ const projectsList = [
     quote: "An AI-powered intelligent email assistant that automates communication workflows, classifies intent, detects spam, analyzes sentiment, and generates context-aware responses using vector memory.",
     name: "MailMind",
     designation: "React • FastAPI • ChromaDB",
-    src: "https://images.unsplash.com/photo-1628749528992-f5702133b686?q=80&w=1368&auto=format&fit=crop",
+    src: "/assets/mailmind.png",
+    link: "https://mailmind-bay-three.vercel.app/",
   }
 ];
 
@@ -182,6 +183,32 @@ export default function App() {
                 </div>
               ))}
             </div>
+
+            {/* Resume Download Button */}
+            <Reveal delay={0.3}>
+              <div style={{ marginTop: '4rem', display: 'flex', justifyContent: 'center' }}>
+                <a href="/assets/resume_up.pdf" download
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '0.8rem', 
+                    padding: '1.2rem 2.8rem', 
+                    borderRadius: 999, 
+                    background: 'linear-gradient(90deg, #3b82f6, #7DD3FC)', 
+                    color: '#050816', 
+                    fontWeight: 700, 
+                    fontSize: '0.95rem', 
+                    textDecoration: 'none', 
+                    boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)',
+                    transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05) translateY(-2px)'; e.currentTarget.style.boxShadow = '0 15px 40px rgba(59, 130, 246, 0.4)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(59, 130, 246, 0.3)'; }}
+                >
+                  <Mail size={18} /> Download Full Resume
+                </a>
+              </div>
+            </Reveal>
           </div>
         </section>
 
