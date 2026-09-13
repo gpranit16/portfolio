@@ -16,7 +16,7 @@ export default function TerminalWindow() {
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      className="relative rounded-[20px] border border-[rgba(125,211,252,0.15)] overflow-hidden bg-[rgba(5,8,22,0.8)] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),0_0_20px_rgba(125,211,252,0.05)] w-full min-h-[350px] lg:min-h-[400px]"
+      className="relative rounded-[4px] border border-[rgba(255,248,235,0.08)] overflow-hidden bg-[rgba(14,13,11,0.85)] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.6),0_0_20px_rgba(200,130,10,0.04)] w-full min-h-[350px] lg:min-h-[400px]"
     >
       {/* Scanline Effect */}
       <div style={{
@@ -37,8 +37,8 @@ export default function TerminalWindow() {
         alignItems: 'center', 
         gap: 10, 
         padding: '16px 24px', 
-        background: 'rgba(255, 255, 255, 0.03)', 
-        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+        background: 'rgba(20, 19, 16, 0.6)', 
+        borderBottom: '1px solid rgba(255, 248, 235, 0.06)',
         position: 'relative',
         zIndex: 10
       }}>
@@ -64,17 +64,17 @@ export default function TerminalWindow() {
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3, duration: 0.6 }}
           style={{ 
-            fontFamily: "'Instrument Serif', serif", 
+            fontFamily: "'Playfair Display', serif", 
             fontSize: 'clamp(2rem, 4vw, 2.8rem)', 
-            color: '#F5F7FA', 
+            color: '#F5EFE0', 
             marginBottom: '2.5rem', 
-            letterSpacing: '-0.02em', 
+            letterSpacing: '-0.025em', 
             lineHeight: 1.1,
-            fontWeight: 400
+            fontWeight: 700
           }}
         >
           Designing systems where <br />
-          AI and engineering <em style={{ color: '#7DD3FC', fontStyle: 'italic' }}>converge.</em>
+          AI and engineering <em style={{ color: '#D4960F', fontStyle: 'italic', fontWeight: 400 }}>converge.</em>
         </motion.h3>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -88,17 +88,17 @@ export default function TerminalWindow() {
               style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}
             >
               <span style={{ 
-                color: '#7DD3FC', 
-                fontFamily: "monospace", 
-                fontSize: '1.1rem', 
+                color: '#D4960F', 
+                fontFamily: "'JetBrains Mono', monospace", 
+                fontSize: '0.9rem', 
                 marginTop: 2,
-                textShadow: '0 0 8px rgba(125, 211, 252, 0.5)'
-              }}>{'>'}</span>
+                opacity: 0.7,
+              }}>{'›'}</span>
               <p style={{ 
                 fontFamily: "'Inter', sans-serif", 
-                fontSize: '1.05rem', 
-                color: 'rgba(245, 247, 250, 0.85)', 
-                lineHeight: 1.6,
+                fontSize: '0.95rem', 
+                color: '#8A8070', 
+                lineHeight: 1.75,
                 fontWeight: 400,
                 letterSpacing: '0.01em'
               }}>{stmt}</p>
@@ -110,11 +110,11 @@ export default function TerminalWindow() {
             animate={{ opacity: [0, 1, 0] }}
             transition={{ repeat: Infinity, duration: 0.8 }}
             style={{ 
-              width: '10px', 
-              height: '20px', 
-              background: '#7DD3FC', 
+              width: '8px', 
+              height: '18px', 
+              background: '#D4960F', 
               marginTop: '0.5rem',
-              boxShadow: '0 0 10px rgba(125, 211, 252, 0.6)'
+              opacity: 0.6,
             }}
           />
         </div>
