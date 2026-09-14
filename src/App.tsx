@@ -3,8 +3,9 @@ import { motion, useInView } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
 import ScrollExpandHero from './components/ui/scroll-expansion-hero';
 import WhoIAm from './components/ui/who-i-am';
-import { CircularTestimonials } from './components/ui/circular-testimonials';
 import TechStack from './components/ui/tech-stack';
+import TarkAiShowcase from './components/ui/tark-ai-showcase';
+import ProjectAssistantModal from './components/ui/project-assistant-modal';
 
 const AMBER = '#D4960F';
 
@@ -20,32 +21,6 @@ const Reveal = ({ children, delay = 0, className = '' }: { children: React.React
     </motion.div>
   );
 };
-
-
-
-const projectsList = [
-  {
-    quote: "A machine learning-powered predictive analytics platform designed to identify high-risk customers and improve retention strategies using behavioral and transactional data.",
-    name: "Churn Reaper",
-    designation: "Python • XGBoost • Streamlit",
-    src: "/assets/churn_reaper.png",
-    link: "https://churn-reaper-y4d3.vercel.app/",
-  },
-  {
-    quote: "Deployed TinyML model on ESP32 using Edge Impulse to classify pothole/normal from MPU6050 sensor data in real-time. Built Node.js backend with JWT auth, Socket.IO live updates, and dual-database sync.",
-    name: "Anveshna",
-    designation: "ESP32 • Node.js • Firebase • MongoDB",
-    src: "/assets/anveshna.jpeg",
-    link: "https://anveshnafrontend.vercel.app/",
-  },
-  {
-    quote: "An AI-powered intelligent email assistant that automates communication workflows, classifies intent, detects spam, analyzes sentiment, and generates context-aware responses using vector memory.",
-    name: "MailMind",
-    designation: "React • FastAPI • ChromaDB",
-    src: "/assets/mailmind.png",
-    link: "https://mailmind-bay-three.vercel.app/",
-  }
-];
 
 const experience = [
   {
@@ -191,39 +166,8 @@ export default function App() {
 
         <div className="divider" />
 
-        {/* ── Projects ── */}
-        <section id="work" className="section" style={{ background: '#000000' }}>
-          <div className="section-inner">
-            <Reveal><p className="eyebrow">Featured Work</p></Reveal>
-            <Reveal delay={0.05}><h2 className="section-title" style={{ marginBottom: '3.5rem' }}>Projects that matter.</h2></Reveal>
-            <Reveal delay={0.1}>
-              <div className="flex flex-wrap gap-6 items-center justify-center relative">
-                <div
-                  className="items-center justify-center relative flex w-full"
-                  style={{ maxWidth: "1024px" }}
-                >
-                  <CircularTestimonials
-                    testimonials={projectsList}
-                    autoplay={true}
-                    colors={{
-                      name: "#f7f7ff",
-                      designation: "#7DD3FC",
-                      testimony: "#9CA3AF",
-                      arrowBackground: "rgba(255,255,255,0.05)",
-                      arrowForeground: "#F5F7FA",
-                      arrowHoverBackground: "rgba(125,211,252,0.2)",
-                    }}
-                    fontSizes={{
-                      name: "2rem",
-                      designation: "1rem",
-                      quote: "1.1rem",
-                    }}
-                  />
-                </div>
-              </div>
-            </Reveal>
-          </div>
-        </section>
+        {/* ── 03 / FEATURED WORK — TARK AI ── */}
+        <TarkAiShowcase />
 
         <div className="divider" />
 
@@ -359,6 +303,9 @@ export default function App() {
         </section>
 
       </ScrollExpandHero>
+
+      {/* ── Global Floating Project Assistant AI ── */}
+      <ProjectAssistantModal />
     </>
   );
 }

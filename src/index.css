@@ -181,3 +181,47 @@ body::before {
   .section-title { font-size: 2.1rem; }
   .nav { padding: 0.875rem 1.25rem; }
 }
+
+/* ── Assistant Markdown Styles ── */
+.assistant-markdown-content p {
+  margin-bottom: 0.65rem;
+}
+.assistant-markdown-content p:last-child {
+  margin-bottom: 0;
+}
+.assistant-markdown-content ul, .assistant-markdown-content ol {
+  margin: 0.4rem 0 0.65rem 1.25rem;
+}
+.assistant-markdown-content li {
+  margin-bottom: 0.25rem;
+}
+.assistant-markdown-content strong {
+  color: #F5EFE0;
+  font-weight: 600;
+}
+.assistant-markdown-content em {
+  color: #D4960F;
+  font-style: normal;
+}
+.assistant-markdown-content code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  background: rgba(200, 130, 10, 0.12);
+  border: 1px solid rgba(200, 130, 10, 0.25);
+  color: #F5EFE0;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.assistant-markdown-content pre {
+  background: #0B0A08;
+  border: 1px solid rgba(255, 248, 235, 0.08);
+  border-radius: 4px;
+  padding: 0.65rem 0.85rem;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+}
+.assistant-markdown-content pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+}

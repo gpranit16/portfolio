@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import { retrieveRelevantChunks, buildSystemPrompt, loadKnowledgeBase } from './server/tarkRagService.js';
 
 dotenv.config();
 
@@ -9,6 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ── Contact API ──
 app.post('/api/contact', async (req, res) => {
   const { name, email, query } = req.body;
 
@@ -25,7 +27,7 @@ app.post('/api/contact', async (req, res) => {
   });
 
   try {
-    // 1. Email to Pranit with query details
+    // 1. Email to Pranit
     await transporter.sendMail({
       from: `"${name}" <${process.env.EMAIL_USER}>`,
       replyTo: email,
@@ -36,7 +38,7 @@ app.post('/api/contact', async (req, res) => {
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Query:</strong></p>
-        <p style="padding: 12px; border-left: 4px solid #7DD3FC; background: #f9f9f9; color: #333;">${query}</p>
+        <p style="padding: 12px; border-left: 4px solid #C8820A; background: #f9f9f9; color: #333;">${query}</p>
       `,
     });
 
@@ -61,7 +63,163 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// ── TARK AI Project Knowledge Assistant (RAG Chat with Streaming) ──
+app.post('/api/tark-assistant/chat', async (req, res) => {
+  const { question, history = [] } = req.body;
+
+  if (!question || typeof question !== 'string' || question.trim().length === 0) {
+    return res.status(400).json({ error: 'A question is required.' });
+  }
+
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'Server configuration error: GROQ_API_KEY not found.' });
+  }
+
+  // 1. Retrieve relevant project context
+  const { chunks, sources } = retrieveRelevantChunks(question, 5);
+  const systemPrompt = buildSystemPrompt(chunks);
+
+  // Set SSE Headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // Immediately send retrieved sources metadata
+  res.write(`data: ${JSON.stringify({ type: 'sources', sources })}\n\n`);
+
+  // Build message history
+  const cleanHistory = (Array.isArray(history) ? history : [])
+    .slice(-4)
+    .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+    .map(m => ({ role: m.role, content: m.content }));
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...cleanHistory,
+    { role: 'user', content: question.trim() }
+  ];
+
+  const candidateModels = [
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
+    'qwen/qwen3.6-27b',
+    'qwen/qwen3.8-27b',
+    process.env.GROQ_MODEL,
+  ].filter(Boolean);
+
+  let groqResponse = null;
+  let usedModel = '';
+
+  for (const model of candidateModels) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: 0.4,
+          max_tokens: 800,
+          stream: true,
+        }),
+      });
+
+      if (response.ok) {
+        groqResponse = response;
+        usedModel = model;
+        break;
+      } else {
+        const err = await response.text();
+        console.warn(`[TARK Assistant] Model ${model} failed (${response.status}):`, err);
+      }
+    } catch (e) {
+      console.warn(`[TARK Assistant] Error attempting model ${model}:`, e.message);
+    }
+  }
+
+  if (!groqResponse || !groqResponse.body) {
+    res.write(`data: ${JSON.stringify({ type: 'error', error: 'TARK RAG service currently unavailable. Please try again shortly.' })}\n\n`);
+    res.end();
+    return;
+  }
+
+  try {
+    const reader = groqResponse.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let inThinkTag = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data: ')) {
+          const payload = trimmed.slice(6).trim();
+          if (payload === '[DONE]') {
+            continue;
+          }
+          try {
+            const parsed = JSON.parse(payload);
+            let delta = parsed.choices?.[0]?.delta?.content || '';
+
+            // Strip out <think> tags if model includes them
+            if (delta.includes('<think>')) {
+              inThinkTag = true;
+              delta = delta.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/<think>[\s\S]*/g, '');
+            } else if (inThinkTag) {
+              if (delta.includes('</think>')) {
+                inThinkTag = false;
+                delta = delta.split('</think>')[1] || '';
+              } else {
+                delta = '';
+              }
+            }
+
+            if (delta) {
+              res.write(`data: ${JSON.stringify({ type: 'delta', delta })}\n\n`);
+            }
+          } catch (e) {
+            // Ignore parse errors on partial chunks
+          }
+        }
+      }
+    }
+
+    res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+    res.end();
+  } catch (error) {
+    console.error('[TARK Assistant] Streaming Error:', error);
+    res.write(`data: ${JSON.stringify({ type: 'error', error: error.message || 'Stream disrupted' })}\n\n`);
+    res.end();
+  }
 });
+
+// ── Refresh Knowledge Index ──
+app.post('/api/tark-assistant/reindex', async (req, res) => {
+  try {
+    loadKnowledgeBase();
+    res.json({ message: 'Knowledge index reloaded successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+const PORT = process.env.PORT || 3001;
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Portfolio & TARK Assistant server running on port ${PORT}`);
+  });
+}
+
+export default app;
