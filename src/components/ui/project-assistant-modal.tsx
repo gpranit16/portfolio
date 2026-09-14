@@ -1,18 +1,36 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Send, RefreshCw, X, Bot, User, Sparkles, ChevronDown, FileText } from 'lucide-react';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
+import { Send, RefreshCw, X, Sparkles, FileText, Square, GripHorizontal } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 const AMBER = '#C8820A';
 const AMBER_LIGHT = '#D4960F';
 
+// Custom Distinctive AI Intelligence Glyph (Abstract intelligence mark with orbit ring and nodes)
+const AiGlyph = ({ size = 20, color = AMBER_LIGHT }: { size?: number; color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Subtle outer dashed orbit ring */}
+    <circle cx="12" cy="12" r="9.5" stroke={color} strokeWidth="1" strokeOpacity="0.45" strokeDasharray="3 2" />
+    {/* Central 4-point diamond spark nucleus */}
+    <path
+      d="M12 4L13.8 10.2L20 12L13.8 13.8L12 20L10.2 13.8L4 12L10.2 10.2L12 4Z"
+      fill={color}
+      fillOpacity="0.9"
+    />
+    {/* Core node */}
+    <circle cx="12" cy="12" r="2.2" fill="#F5EFE0" />
+    {/* 4 Connected orbit micro-nodes */}
+    <circle cx="12" cy="2.5" r="1.2" fill={color} />
+    <circle cx="21.5" cy="12" r="1.2" fill={color} />
+    <circle cx="12" cy="21.5" r="1.2" fill={color} />
+    <circle cx="2.5" cy="12" r="1.2" fill={color} />
+  </svg>
+);
+
 interface SourceCitation {
   source: string;
-  file_path: string;
-  section: string;
   title: string;
-  lines?: [number, number];
 }
 
 interface ChatMessage {
@@ -24,10 +42,11 @@ interface ChatMessage {
 }
 
 const suggestedPrompts = [
-  "What is TARK AI & how does it work? 🚀",
-  "How does RAG & 2-Layer Memory work? 🧠",
-  "What is Pranit's core tech stack? 💻",
-  "Tell me about Pranit's experience & awards 🏆",
+  "Why should we hire Pranit?",
+  "What are his strongest projects?",
+  "What is TARK AI?",
+  "What are his strongest AI skills?",
+  "What roles is he looking for?",
 ];
 
 interface ProjectAssistantModalProps {
@@ -59,19 +78,40 @@ export default function ProjectAssistantModal({
     {
       id: 'welcome',
       role: 'assistant',
-      content: "👋 **Hello! I'm Pranit's AI Project Assistant.**\n\nI can answer anything about **TARK AI** (architecture, RAG, 2-layer memory, model routing, agent workflows) or Pranit's background and experience. What would you like to explore?",
+      content: "👋 **Hello! I'm Pranit's Portfolio Assistant.**\n\nAsk me about Pranit's skills, experience, projects (**TARK AI**, **Syncora**, **Churn Reaper**), education, or technical background.",
       sources: [],
     }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
+  const dragControls = useDragControls();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsLoading(false);
+    setMessages(prev => prev.map(m => m.isStreaming ? { ...m, isStreaming: false } : m));
   };
 
   const handleSubmit = useCallback(async (questionText?: string) => {
@@ -98,25 +138,49 @@ export default function ProjectAssistantModal({
       sources: [],
     };
 
+    // Clean conversation history for multi-turn context
     const historyPayload = messages
       .filter(m => m.id !== 'welcome')
+      .slice(-6)
       .map(m => ({ role: m.role, content: m.content }));
 
     setMessages(prev => [...prev, userMsg, initialAssistantMsg]);
     setIsLoading(true);
 
-    try {
-      const response = await fetch('/api/tark-assistant/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: q,
-          history: historyPayload,
-        }),
-      });
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
-      if (!response.ok) {
-        throw new Error(`Server status ${response.status}: Failed to reach project assistant service.`);
+    try {
+      const apiEndpoints = [
+        '/api/pranit-assistant/chat',
+        'http://localhost:3001/api/pranit-assistant/chat'
+      ];
+
+      let response: Response | null = null;
+
+      for (const endpoint of apiEndpoints) {
+        try {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              question: q,
+              history: historyPayload,
+            }),
+            signal: abortController.signal,
+          });
+
+          if (res.ok) {
+            response = res;
+            break;
+          }
+        } catch {
+          // Try next endpoint
+        }
+      }
+
+      if (!response || !response.ok) {
+        throw new Error('Failed to connect to ASK PRANIT AI backend service.');
       }
 
       if (!response.body) {
@@ -155,7 +219,7 @@ export default function ProjectAssistantModal({
                 throw new Error(event.error || 'Assistant response error');
               }
             } catch {
-              // Ignore partial chunk parse errors
+              // Ignore partial JSON parse chunks
             }
           }
         }
@@ -163,39 +227,158 @@ export default function ProjectAssistantModal({
 
       setMessages(prev => prev.map(m => m.id === assistantMsgId ? { ...m, isStreaming: false } : m));
     } catch (err: unknown) {
-      console.warn('Project Assistant Server unreachable, using smart intelligent fallback:', err);
-      
-      // Intelligent Instant Local Response Generator
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log('[ASK PRANIT AI] Request aborted by user');
+        return;
+      }
+
+      console.warn('ASK PRANIT AI Server fallback engaged:', err);
+
+      // Deterministic Verified Knowledge Fallback (Concise, structured, non-jargony)
       const lowerQ = q.toLowerCase();
+      const isSecondPerson = lowerQ.includes('yourself') || lowerQ.includes('you ') || lowerQ.includes('your ');
       let fallbackText = '';
       let fallbackSources: SourceCitation[] = [];
 
       if (/^(hi|hii|hello|hey|namaste|hola|yo|greetings)/i.test(lowerQ)) {
-        fallbackText = "👋 **Hey there!** I'm Pranit's AI Project & Portfolio Assistant.\n\nI can help you explore:\n- **TARK AI Architecture** (Multi-agent workflows, RAG/CRAG, two-layer pgvector memory)\n- **Pranit's Engineering Background** (IEEE EMBS Webmaster, VOLCOM Lead, SuccessPath)\n- **Tech Stack & Skills** (Python, FastAPI, LangGraph, React, PostgreSQL, LLMs)\n\nWhat would you like to know?";
-      } else if (lowerQ.includes('tark') || lowerQ.includes('what is') || lowerQ.includes('project')) {
-        fallbackText = "🚀 **TARK AI** is Pranit's flagship full-stack **Agentic AI Workspace & Personal Productivity OS**.\n\n### Key Highlights:\n- **Multi-Model Gateway**: Seamlessly routes prompts between local models (Ollama) and cloud APIs (Groq, Anthropic, OpenAI) with automated fallback.\n- **Two-Layer Memory**: Short-term conversation thread memory paired with persistent long-term semantic memory powered by PostgreSQL & pgvector.\n- **Hybrid RAG & CRAG**: Combines BM25 keyword search with dense vector embeddings and corrective query rewriting.\n- **Sandboxed Tool Calling**: 44+ registered tools with AST inspection and sandboxed Python execution.\n- **Agent Workflows**: Multi-step planning, web search, document synthesis, and verification loops orchestrated via LangGraph.";
-        fallbackSources = [
-          { source: 'ARCHITECTURE.md', file_path: 'ARCHITECTURE.md', section: 'System Overview', title: 'System Overview' },
-          { source: 'README.md', file_path: 'README.md', section: 'TARK AI Overview', title: 'TARK AI Overview' }
-        ];
-      } else if (lowerQ.includes('memory') || lowerQ.includes('rag') || lowerQ.includes('retrieval')) {
-        fallbackText = "🧠 **Memory & Retrieval in TARK AI**:\n\n1. **Two-Layer Memory System**:\n   - **Short-Term Session Memory**: Tracks active chat state and context windows.\n   - **Long-Term Semantic Memory**: Uses `pgvector` in PostgreSQL for vector embeddings with automatic deduplication, confidence scoring, and temporal decay.\n\n2. **Corrective RAG (CRAG) Pipeline**:\n   - Ingests documents into structured chunks.\n   - Performs hybrid dense-sparse search.\n   - An evaluator LLM grades retrieval relevance; if confidence is low, it rewrites the query or triggers web search.";
-        fallbackSources = [
-          { source: 'DECISIONS.md', file_path: 'DECISIONS.md', section: 'Two-Layer Memory Architecture', title: 'ADR: Memory Architecture' }
-        ];
-      } else if (lowerQ.includes('stack') || lowerQ.includes('tech') || lowerQ.includes('skill')) {
-        fallbackText = "💻 **Pranit's Core Tech Stack**:\n\n- **AI & Agents**: LangGraph, LLM Function Calling, RAG/CRAG, Prompt Engineering, pgvector, Ollama, Groq, OpenAI.\n- **Backend**: Python, FastAPI, Node.js, Express, PostgreSQL, Redis, REST APIs.\n- **Frontend**: React, TypeScript, Tailwind CSS, Framer Motion, Three.js.\n- **DevOps & Tools**: Docker, Git, Linux, Sandboxed AST Execution.";
-      } else if (lowerQ.includes('syncora') || lowerQ.includes('collaboration') || lowerQ.includes('chat app')) {
-        fallbackText = "⚡ **Syncora** is a real-time team collaboration & productivity workspace built by Pranit.\n\n### Core Capabilities:\n- **Team Channels & Messaging**: Real-time channel conversations, persistent chat history, and audio meeting integration.\n- **Task Workspace**: Sprint task board with pending, in-progress, and completed status workflows.\n- **Direct Messaging & Meetings**: Secure peer-to-peer conversations with voice/video call session history.\n\nLive Demo: [https://syncora-rho.vercel.app](https://syncora-rho.vercel.app)\nGitHub: [https://github.com/gpranit16/syncora](https://github.com/gpranit16/syncora)";
-      } else if (lowerQ.includes('experience') || lowerQ.includes('award') || lowerQ.includes('who is')) {
-        fallbackText = "🏆 **About Pranit Kumar**:\n\n- **Role**: AI Engineer & Full-Stack Developer.\n- **Webmaster @ IEEE EMBS**: Managing web systems, technical workflows, and innovation initiatives.\n- **Technical Lead @ VOLCOM (IEEE EMBS)**: Led biomedical IoT applications and healthcare tech workflows.\n- **Full Stack Intern @ SuccessPath Classes**: Scaled student dashboard APIs and databases.\n- **Awards**: 3rd Place @ National Sustainathon (Piezoelectric energy harvesting) & Best Innovation Award @ Agentic AI Sprint Hackathon.";
+        fallbackText = "👋 **Hello! I'm Pranit's Portfolio Assistant.**\n\nI can answer questions regarding:\n- **Candidate Profile** (Skills, B.E. at BMSIT&M, Internships at VeloxCodeAgency & SuccessPath)\n- **TARK AI** (Agentic AI Workspace, multi-model routing, RAG/CRAG, MCP tools)\n- **SYNCORA** (Real-time team collaboration, WebRTC video/audio, AI meeting intelligence)\n- **CHURN REAPER** (Machine learning, XGBoost, TreeSHAP explainability, retention ROI)\n\nWhat would you like to explore?";
+        fallbackSources = [{ source: 'PORTFOLIO · Candidate Profile', title: 'Candidate Profile & Background' }];
+      } else if (lowerQ.includes('yourself') || (lowerQ.includes('tell me') && lowerQ.includes('about you'))) {
+        fallbackText = `I am a Computer Science undergraduate at BMSIT&M, Bengaluru (CGPA: 8.72), focused on engineering practical AI systems and full-stack software.
+
+My core work centers on:
+- **Agentic AI & Retrieval**: Building **TARK AI**, a personal OS with LangGraph, hybrid RAG/CRAG, pgvector, and 21 GitHub MCP tools.
+- **Real-Time Full-Stack Systems**: Developing **Syncora**, a collaboration platform with Socket.io, WebRTC audio/video, and NVIDIA Nemotron meeting intelligence.
+- **Applied Machine Learning**: Creating **Churn Reaper**, an XGBoost customer churn engine with TreeSHAP explainability and financial retention modeling.
+
+I enjoy taking systems from architectural design to deployed, production-ready software.`;
+        fallbackSources = [{ source: 'PORTFOLIO · Candidate Profile', title: 'Candidate Profile & Background' }];
+      } else if (lowerQ.includes('why') && (lowerQ.includes('hire') || lowerQ.includes('hire him') || lowerQ.includes('good fit') || lowerQ.includes('choose'))) {
+        if (isSecondPerson) {
+          fallbackText = `### Why Hire Me?
+
+My strongest edge is that I build both the AI models/agent workflows and the complete product around them:
+
+- **AI Engineering Depth**: Built **TARK AI**, an Agentic AI workspace with dynamic multi-model LLM routing, hybrid RAG/CRAG with pgvector, and 21 GitHub MCP tools.
+- **Full-Stack Execution**: Engineered **Syncora**, a real-time collaboration platform with Socket.io, WebRTC conferencing, and automated meeting minutes powered by NVIDIA Nemotron.
+- **Applied Machine Learning**: Developed **Churn Reaper**, connecting XGBoost predictions with TreeSHAP explainability and Customer Lifetime Value (CLV) economics.
+- **Proven Initiative**: B.E. in CSE at BMSIT&M (CGPA: 8.72), IEEE EMBS Webmaster, and National Sustainathon winner.`;
+        } else {
+          fallbackText = `### Why Hire Pranit Kumar?
+
+Pranit's core edge is that he builds both the AI models/workflows and the complete full-stack product around them:
+
+- **AI Engineering Depth**: Built **TARK AI**, an Agentic AI workspace with dynamic multi-model LLM routing, hybrid RAG/CRAG with pgvector, and 21 GitHub MCP tools.
+- **Full-Stack Execution**: Engineered **Syncora**, a real-time collaboration platform with Socket.io, WebRTC conferencing, and NVIDIA Nemotron meeting intelligence.
+- **Applied Machine Learning**: Developed **Churn Reaper**, connecting XGBoost predictions with TreeSHAP explainability and Customer Lifetime Value (CLV) economics.
+- **Strong Foundation**: Computer Science undergraduate at BMSIT&M (CGPA: 8.72), IEEE EMBS Webmaster, and National Sustainathon winner.`;
+        }
+        fallbackSources = [{ source: 'PORTFOLIO · Candidate Evaluation', title: 'Why Hire Pranit / Candidate Value Proposition' }];
+      } else if (lowerQ.includes('strength') || lowerQ.includes('weakness') || lowerQ.includes('best at') || lowerQ.includes('improve')) {
+        fallbackText = `### Strengths & Growth Areas
+
+**Top Strengths:**
+1. **Agentic AI & RAG Architecture**: Proficient in LangGraph, hybrid sparse-dense retrieval (BM25 + pgvector), and Model Context Protocol (MCP) integrations (TARK AI).
+2. **Full-Stack Product Delivery**: Delivers end-to-end applications from database schemas to reactive React frontends and low-latency APIs (Syncora).
+3. **Applied ML & Explainability**: Connects predictive models (XGBoost) with business decision metrics via TreeSHAP (Churn Reaper).
+
+**Growth Area:**
+- Continues to deepen hands-on expertise in large-scale distributed systems orchestration and high-throughput multi-region database replication as systems scale.`;
+        fallbackSources = [{ source: 'PORTFOLIO · Candidate Evaluation', title: 'Strengths & Growth Areas' }];
+      } else if (lowerQ.includes('why ai') || lowerQ.includes('motivation') || lowerQ.includes('why software') || lowerQ.includes('why did')) {
+        fallbackText = `### Career Motivation & Why AI
+
+Pranit is motivated by transforming software from static tools into proactive, intelligent systems that can reason, synthesize knowledge, and perform real-world actions for users.
+
+He aims to work in environments that prioritize technical rigor and product ownership, building practical AI systems and full-stack platforms that solve concrete user problems.`;
+        fallbackSources = [{ source: 'PORTFOLIO · Career Direction', title: 'Career Direction, Motivation & Why AI' }];
+      } else if (lowerQ.includes('strongest project') || lowerQ.includes('best project') || lowerQ.includes('most challenging') || (lowerQ.includes('which project') && lowerQ.includes('demonstrate'))) {
+        fallbackText = `### Strongest Projects by Domain
+
+- **Agentic AI & Systems**: **TARK AI** is his most technically challenging project, featuring dynamic multi-model LLM routing, hybrid RAG/CRAG, pgvector search, persistent 2-layer memory, and 21 GitHub MCP tools.
+- **Real-Time Full-Stack**: **Syncora** demonstrates real-time communication at scale with Socket.io, WebRTC audio/video conferencing, and automated meeting intelligence.
+- **Machine Learning**: **Churn Reaper** demonstrates applied ML with XGBoost tabular classification, TreeSHAP feature attribution, and customer retention economics.`;
+        fallbackSources = [{ source: 'PORTFOLIO · Project Synthesis', title: 'Project Comparison & Domain Strengths' }];
+      } else if (lowerQ.includes('challenge') || lowerQ.includes('problem') || lowerQ.includes('went wrong') || lowerQ.includes('how does he learn') || lowerQ.includes('debugging')) {
+        fallbackText = `### Technical Problem Solving & Behavioral Context
+
+- **Solving RAG Context Drift in TARK AI**: When standard RAG returned noisy chunks for complex queries, Pranit implemented Corrective RAG (CRAG) with query rewriting, evaluator scoring, and hybrid dense-sparse retrieval (BM25 + pgvector) to validate context before generation.
+- **Low-Latency Signaling in Syncora**: To prevent meeting transcript processing from stalling high-throughput Socket.io chat events, he decoupled media signaling and offloaded transcription processing asynchronously.
+- **Learning New Tech**: Learns by studying official specifications, RFCs, and building working prototypes rather than relying only on surface-level tutorials.`;
+        fallbackSources = [{ source: 'PORTFOLIO · Engineering Approach', title: 'Behavioral Questions & Technical Problem Solving' }];
+      } else if (lowerQ.includes('role') || lowerQ.includes('ai engineer') || lowerQ.includes('full-stack') || lowerQ.includes('looking for')) {
+        fallbackText = `### Target Roles & Candidate Fit
+
+Pranit brings a strong dual capability across AI and software engineering:
+- **AI / GenAI Engineer**: Strong depth in LangGraph, hybrid RAG/CRAG, pgvector vector search, dynamic LLM routing, and MCP tool loops (demonstrated in **TARK AI**).
+- **Full-Stack Developer**: High competence in React, FastAPI, Node.js/Express, PostgreSQL, Socket.io, and WebRTC (demonstrated in **Syncora**).
+- **Applied ML Engineer**: Hands-on experience with XGBoost classification, TreeSHAP explainability, and financial metrics (demonstrated in **Churn Reaper**).`;
+        fallbackSources = [{ source: 'PORTFOLIO · Career Direction', title: 'Career Direction, Motivation & Why AI' }];
+      } else if (lowerQ.includes('tark')) {
+        fallbackText = `### TARK AI — Agentic AI Workspace & Personal OS
+
+TARK AI is Pranit's full-stack personal AI workspace designed for research, coding, and automated task execution:
+
+- **Dynamic Multi-Model Routing**: Routes prompts dynamically between high-reasoning and fast models.
+- **Hybrid RAG & CRAG**: Combines BM25 sparse search and pgvector semantic embeddings with active hallucination controls.
+- **Persistent 2-Layer Memory**: Tracks session context alongside long-term semantic knowledge.
+- **Real-World Tool Loops**: Authenticated integrations with Google Workspace and 21 GitHub MCP tools for automated scheduling and repo management.`;
+        fallbackSources = [{ source: 'TARK AI · Architecture & RAG', title: 'TARK AI — Agentic AI Workspace & Personal OS' }];
+      } else if (lowerQ.includes('syncora')) {
+        fallbackText = `### SYNCORA — AI-Powered Team Collaboration Platform
+
+Syncora is a real-time collaboration platform designed for modern engineering teams:
+
+- **Real-Time Communication**: Socket.io channels, direct messaging, and MySQL relational integrity.
+- **WebRTC Audio & Video**: Low-latency peer-to-peer conferencing and screen sharing.
+- **AI Meeting Intelligence**: Powered by NVIDIA Nemotron to convert meeting transcripts into structured executive summaries, decisions, blockers, and assignable Kanban tasks.`;
+        fallbackSources = [{ source: 'SYNCORA · Meeting Intelligence', title: 'SYNCORA — Team Collaboration Platform' }];
+      } else if (lowerQ.includes('churn') || lowerQ.includes('ml') || lowerQ.includes('machine learning')) {
+        fallbackText = `### CHURN REAPER — Customer Retention & Churn Intelligence
+
+Churn Reaper is an applied ML platform that predicts customer churn and prescribes ROI-optimized retention interventions:
+
+- **XGBoost Pipeline**: High-accuracy gradient-boosted classification with automated feature engineering.
+- **TreeSHAP Explainability**: Provides mathematical attribution for why specific accounts are at risk (tenure, pricing changes, usage velocity).
+- **Retention ROI Engine**: Deterministic financial model calculating CLV, expected profit-at-risk, and projected retention ROI.`;
+        fallbackSources = [{ source: 'CHURN REAPER · Retention Engine', title: 'CHURN REAPER — Customer Retention & Churn Intelligence' }];
+      } else if (lowerQ.includes('experience') || lowerQ.includes('internship') || lowerQ.includes('work') || lowerQ.includes('velox') || lowerQ.includes('successpath')) {
+        fallbackText = `### Professional Experience & Internships
+
+- **VeloxCodeAgency** — Full-Stack Development Intern *(01 Jun 2026 – 30 Jun 2026)*: Contributed to full-stack application development, debugging, and delivery. Verified certificate available in portfolio.
+- **SuccessPath Classes (Remote)** — Full Stack Developer Intern *(19 Jan 2026 – 18 Feb 2026)*: Built application features across frontend and backend workflows. Verified certificate available in portfolio.
+- **IEEE EMBS, BMSIT&M** — Webmaster (Leadership & College Community) *(Nov 2025 – Present)*: Leading web architecture, digital workflows, and engineered an AI-powered MRI verification system.`;
+        fallbackSources = [{ source: 'RESUME · Experience', title: 'Professional Internships & Experience' }];
+      } else if (lowerQ.includes('education') || lowerQ.includes('study') || lowerQ.includes('college') || lowerQ.includes('cgpa')) {
+        fallbackText = `### Education & Academic Record
+
+- **BMS Institute of Technology and Management (BMSIT&M), Bengaluru**
+  - Bachelor of Engineering (B.E.) in Computer Science and Engineering
+  - Duration: Sep 2024 – Sep 2028 | **CGPA: 8.72**
+
+- **Ms Memorial Public School, India**
+  - Higher Secondary Education (CBSE)
+  - Duration: Apr 2022 – Apr 2024 | **Score: 91%**`;
+        fallbackSources = [{ source: 'RESUME · Education', title: 'Education & Academic Record' }];
+      } else if (lowerQ.includes('skill') || lowerQ.includes('tech') || lowerQ.includes('stack') || lowerQ.includes('language')) {
+        fallbackText = `### Approved Technical Arsenal
+
+- **Languages**: C, C++, Python, JavaScript
+- **AI & GenAI**: LangChain, LangGraph, OpenAI SDK, RAG / CRAG, pgvector, Vector Search, Multi-Model Routing
+- **Backend & Databases**: FastAPI, Node.js, Express.js, PostgreSQL, MongoDB, REST APIs
+- **Machine Learning**: XGBoost, Scikit-Learn, TreeSHAP, Predictive Analytics, CLV Modeling
+- **Real-Time & Media**: Socket.io, WebRTC, Server-Sent Events (SSE)
+- **Infrastructure & Tools**: Docker, Git, GitHub, Vercel, Render, Postman`;
+        fallbackSources = [{ source: 'PORTFOLIO · Technical Arsenal', title: 'Approved Technical Stack & Expertise' }];
       } else {
-        fallbackText = `💡 **Pranit's AI Assistant Response**:\n\nRegarding **"${q}"**:\n\nPranit specializes in building production-grade AI systems, agentic architectures (like TARK AI), and high-performance full-stack web applications. \n\nFeel free to ask about specific components like **RAG pipelines**, **memory storage**, or **project demos**!`;
+        fallbackText = "I couldn't verify that from Pranit's portfolio context. Feel free to ask about Pranit's skills, experience, projects (TARK AI, Syncora, Churn Reaper), education, or career goals.";
+        fallbackSources = [{ source: 'PORTFOLIO · Candidate Profile', title: 'Candidate Profile & Background' }];
       }
 
       setMessages(prev => prev.map(m => m.id === assistantMsgId ? { ...m, content: fallbackText, sources: fallbackSources, isStreaming: false } : m));
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   }, [input, isLoading, messages]);
 
@@ -219,7 +402,6 @@ export default function ProjectAssistantModal({
     }
   }, [isOpen, messages]);
 
-  // Handle triggered queries from outside
   useEffect(() => {
     if (initialQuery && initialQuery.trim().length > 0) {
       setIsOpen(true);
@@ -228,11 +410,12 @@ export default function ProjectAssistantModal({
   }, [initialQuery, handleSubmit, setIsOpen]);
 
   const handleClear = () => {
+    handleStopGeneration();
     setMessages([
       {
         id: 'welcome',
         role: 'assistant',
-        content: "✨ Chat reset! Feel free to ask another question about **TARK AI**, technical architecture, or Pranit's work.",
+        content: "✨ Chat reset! Ask me anything about Pranit's skills, background, projects, or why he is a strong candidate for your team.",
         sources: [],
       }
     ]);
@@ -241,7 +424,99 @@ export default function ProjectAssistantModal({
 
   return (
     <>
-      {/* ── Global Floating Trigger Button (Robot Icon + Badge) ── */}
+      <style>{`
+        .ask-pranit-markdown {
+          font-family: 'Inter', sans-serif;
+          color: #E8E1D5;
+          font-size: 0.855rem;
+          line-height: 1.65;
+        }
+        .ask-pranit-markdown h1,
+        .ask-pranit-markdown h2,
+        .ask-pranit-markdown h3 {
+          font-family: 'Playfair Display', serif;
+          color: #F5EFE0;
+          margin-top: 0.75rem;
+          margin-bottom: 0.35rem;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+        }
+        .ask-pranit-markdown h1 { font-size: 1.15rem; }
+        .ask-pranit-markdown h2 { font-size: 1.05rem; }
+        .ask-pranit-markdown h3 { font-size: 0.95rem; }
+        .ask-pranit-markdown p {
+          margin: 0.35rem 0 0.5rem;
+          line-height: 1.65;
+          color: #E8E1D5;
+        }
+        .ask-pranit-markdown ul,
+        .ask-pranit-markdown ol {
+          margin: 0.35rem 0 0.6rem 1.15rem;
+          padding: 0;
+          color: #E8E1D5;
+        }
+        .ask-pranit-markdown li {
+          margin-bottom: 0.3rem;
+          line-height: 1.55;
+        }
+        .ask-pranit-markdown strong {
+          color: #F5EFE0;
+          font-weight: 600;
+        }
+        .ask-pranit-markdown code {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.78rem;
+          background: rgba(200, 130, 10, 0.12);
+          color: #D4960F;
+          padding: 2px 5px;
+          border-radius: 3px;
+          border: 1px solid rgba(200, 130, 10, 0.2);
+        }
+        .ask-pranit-markdown pre {
+          background: #0E0D0B;
+          border: 1px solid rgba(255, 248, 235, 0.1);
+          border-radius: 6px;
+          padding: 0.75rem;
+          overflow-x: auto;
+          margin: 0.5rem 0;
+        }
+        .ask-pranit-markdown pre code {
+          background: transparent;
+          border: none;
+          padding: 0;
+          color: #F5EFE0;
+        }
+        .ask-pranit-markdown a {
+          color: #D4960F;
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        }
+        /* Table rendering safeguard: prevents vertical column collapse */
+        .ask-pranit-markdown table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 0.75rem 0;
+          font-size: 0.8rem;
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+        }
+        .ask-pranit-markdown th,
+        .ask-pranit-markdown td {
+          padding: 6px 10px;
+          border: 1px solid rgba(255, 248, 235, 0.1);
+          text-align: left;
+        }
+        .ask-pranit-markdown th {
+          background: #181612;
+          color: #F5EFE0;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.72rem;
+          text-transform: uppercase;
+        }
+      `}</style>
+
+      {/* ── Global Floating Trigger Launcher (ALWAYS VISIBLE "ASK PRANIT AI") ── */}
       <div
         style={{
           position: 'fixed',
@@ -253,207 +528,190 @@ export default function ProjectAssistantModal({
           gap: '10px',
         }}
       >
-        <AnimatePresence>
-          {!isOpen && (
-            <motion.div
-              initial={{ opacity: 0, x: 20, scale: 0.9 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 20, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              {/* Tooltip badge pill */}
-              <button
-                onClick={() => setIsOpen(true)}
-                style={{
-                  background: 'rgba(20, 19, 16, 0.92)',
-                  backdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(200, 130, 10, 0.35)',
-                  padding: '8px 14px',
-                  borderRadius: '30px',
-                  color: '#F5EFE0',
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: '0.72rem',
-                  fontWeight: 600,
-                  letterSpacing: '0.06em',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(200, 130, 10, 0.15)',
-                  transition: 'all 200ms ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = AMBER_LIGHT;
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 12px 28px rgba(0, 0, 0, 0.8), 0 0 18px rgba(200, 130, 10, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(200, 130, 10, 0.35)';
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(200, 130, 10, 0.15)';
-                }}
-              >
-                <Sparkles size={13} color={AMBER_LIGHT} />
-                <span>Ask about Projects</span>
-                <span
-                  style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: '#22C55E',
-                    boxShadow: '0 0 8px rgba(34, 197, 94, 0.8)',
-                  }}
-                />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Floating Robot Icon Button */}
+        {/* Floating Custom AI Glyph Pill Button */}
         <motion.button
           onClick={() => setIsOpen(!isOpen)}
-          whileHover={{ scale: 1.06 }}
-          whileTap={{ scale: 0.94 }}
+          whileHover={{ scale: 1.04, y: -2 }}
+          whileTap={{ scale: 0.96 }}
           style={{
-            width: '52px',
-            height: '52px',
-            borderRadius: '50%',
-            background: isOpen
-              ? '#181612'
-              : 'linear-gradient(135deg, #1C1914 0%, #12110E 100%)',
-            border: `1.5px solid ${isOpen ? 'rgba(255, 248, 235, 0.2)' : 'rgba(200, 130, 10, 0.5)'}`,
-            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.8), 0 0 20px rgba(200, 130, 10, 0.25)',
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            color: isOpen ? '#C8BFA8' : AMBER_LIGHT,
+            gap: '10px',
+            padding: isOpen ? '0.75rem 1.15rem' : '0.75rem 1.35rem 0.75rem 1rem',
+            borderRadius: '9999px',
+            background: isOpen
+              ? '#1A1814'
+              : 'radial-gradient(circle at 35% 35%, #24201A 0%, #141310 100%)',
+            border: `1.5px solid ${isOpen ? 'rgba(255, 248, 235, 0.25)' : 'rgba(200, 130, 10, 0.45)'}`,
+            boxShadow: isOpen
+              ? '0 8px 24px rgba(0, 0, 0, 0.8)'
+              : '0 12px 32px rgba(0, 0, 0, 0.85), 0 0 18px rgba(200, 130, 10, 0.22)',
+            color: '#F5EFE0',
             cursor: 'pointer',
-            position: 'relative',
-            transition: 'border-color 200ms ease',
+            transition: 'border-color 200ms ease, box-shadow 200ms ease, background 200ms ease',
           }}
-          aria-label={isOpen ? "Close Project AI Assistant" : "Open Project AI Assistant"}
+          aria-label={isOpen ? "Close ASK PRANIT AI" : "Open ASK PRANIT AI"}
         >
           {isOpen ? (
-            <ChevronDown size={22} />
-          ) : (
             <>
-              <Bot size={24} />
-              {/* Online pulse ring */}
+              <X size={18} color="#C8BFA8" />
               <span
                 style={{
-                  position: 'absolute',
-                  top: '1px',
-                  right: '1px',
-                  width: '12px',
-                  height: '12px',
-                  borderRadius: '50%',
-                  background: '#22C55E',
-                  border: '2px solid #141310',
-                  boxShadow: '0 0 8px rgba(34, 197, 94, 0.8)',
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: '#C8BFA8',
                 }}
-              />
+              >
+                Close
+              </span>
+            </>
+          ) : (
+            <>
+              <div
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  background: 'rgba(200, 130, 10, 0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <AiGlyph size={18} color={AMBER_LIGHT} />
+              </div>
+              <span
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: '0.76rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: '#F5EFE0',
+                }}
+              >
+                ASK PRANIT AI
+              </span>
             </>
           )}
         </motion.button>
       </div>
 
-      {/* ── Conversational Chat Modal / Drawer ── */}
+      {/* ── Draggable Conversational Chat Window ── */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            drag={!isMobile}
+            dragControls={dragControls}
+            dragListener={false}
+            dragMomentum={false}
+            dragElastic={0.05}
+            initial={{ opacity: 0, y: 20, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 30, scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+            exit={{ opacity: 0, y: 20, scale: 0.96 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: 'fixed',
-              bottom: '88px',
-              right: '24px',
-              width: 'min(440px, calc(100vw - 32px))',
-              height: 'min(620px, calc(100vh - 120px))',
+              bottom: isMobile ? '0' : '88px',
+              right: isMobile ? '0' : '24px',
+              left: isMobile ? '0' : 'auto',
+              width: isMobile ? '100vw' : 'min(500px, calc(100vw - 32px))',
+              height: isMobile ? 'min(620px, calc(100vh - 40px))' : 'min(650px, calc(100vh - 100px))',
+              maxHeight: isMobile ? '90vh' : '680px',
               zIndex: 9995,
-              background: 'rgba(18, 17, 14, 0.97)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(200, 130, 10, 0.3)',
-              borderRadius: '12px',
-              boxShadow: '0 24px 60px -10px rgba(0, 0, 0, 0.95), 0 0 30px rgba(200, 130, 10, 0.1)',
+              background: '#0E0D0B',
+              border: isMobile ? 'none' : '1px solid rgba(255, 248, 235, 0.1)',
+              borderTop: isMobile ? '1px solid rgba(200, 130, 10, 0.3)' : '1px solid rgba(255, 248, 235, 0.1)',
+              borderRadius: isMobile ? '16px 16px 0 0' : '12px',
+              boxShadow: '0 24px 64px -10px rgba(0, 0, 0, 0.96), 0 0 24px rgba(200, 130, 10, 0.12)',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
             }}
           >
-            {/* Header */}
+            {/* Header (Draggable Handle on Desktop) */}
             <div
+              onPointerDown={(e) => {
+                if (!isMobile) dragControls.start(e);
+              }}
               style={{
-                padding: '1rem 1.25rem',
-                background: 'rgba(25, 23, 19, 0.85)',
+                padding: '0.9rem 1.25rem',
+                background: '#141310',
                 borderBottom: '1px solid rgba(255, 248, 235, 0.08)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                cursor: isMobile ? 'default' : 'grab',
+                userSelect: 'none',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div
                   style={{
-                    width: '34px',
-                    height: '34px',
+                    width: '32px',
+                    height: '32px',
                     borderRadius: '8px',
-                    background: 'rgba(200, 130, 10, 0.15)',
-                    border: '1px solid rgba(200, 130, 10, 0.35)',
+                    background: 'rgba(200, 130, 10, 0.12)',
+                    border: '1px solid rgba(200, 130, 10, 0.3)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: AMBER_LIGHT,
+                    flexShrink: 0,
                   }}
                 >
-                  <Bot size={18} />
+                  <AiGlyph size={18} color={AMBER_LIGHT} />
                 </div>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <h3
-                      style={{
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        color: '#F5EFE0',
-                        letterSpacing: '0.12em',
-                        margin: 0,
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      PROJECT AI ASSISTANT
-                    </h3>
-                    <span
-                      style={{
-                        width: '6px',
-                        height: '6px',
-                        borderRadius: '50%',
-                        background: '#22C55E',
-                        boxShadow: '0 0 6px rgba(34, 197, 94, 0.8)',
-                      }}
-                    />
-                  </div>
+                  <h3
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      color: '#F5EFE0',
+                      letterSpacing: '0.12em',
+                      margin: 0,
+                      textTransform: 'uppercase',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                    }}
+                  >
+                    <span>✦ ASK PRANIT AI</span>
+                  </h3>
                   <p
                     style={{
                       fontFamily: "'Inter', sans-serif",
-                      fontSize: '0.75rem',
+                      fontSize: '0.72rem',
                       color: '#8A8070',
-                      margin: '2px 0 0 0',
+                      margin: '1px 0 0 0',
                     }}
                   >
-                    Grounded in TARK AI repo &amp; Portfolio
+                    Personal portfolio assistant
                   </p>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              {/* Header Right Actions */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {!isMobile && (
+                  <div
+                    title="Drag window"
+                    style={{
+                      color: '#5A5248',
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '4px',
+                      cursor: 'grab',
+                    }}
+                  >
+                    <GripHorizontal size={15} />
+                  </div>
+                )}
+
                 {messages.length > 1 && (
                   <button
                     onClick={handleClear}
@@ -468,7 +726,7 @@ export default function ProjectAssistantModal({
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      transition: 'color 180ms ease',
+                      transition: 'color 160ms ease',
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = '#F5EFE0')}
                     onMouseLeave={(e) => (e.currentTarget.style.color = '#8A8070')}
@@ -489,7 +747,7 @@ export default function ProjectAssistantModal({
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    transition: 'color 180ms ease',
+                    transition: 'color 160ms ease',
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = '#F5EFE0')}
                   onMouseLeave={(e) => (e.currentTarget.style.color = '#8A8070')}
@@ -503,8 +761,9 @@ export default function ProjectAssistantModal({
             {messages.length <= 1 && (
               <div
                 style={{
-                  padding: '0.85rem 1.15rem 0.25rem',
-                  borderBottom: '1px solid rgba(255, 248, 235, 0.04)',
+                  padding: '0.85rem 1.25rem 0.35rem',
+                  borderBottom: '1px solid rgba(255, 248, 235, 0.05)',
+                  background: 'rgba(20, 19, 16, 0.4)',
                 }}
               >
                 <p
@@ -512,23 +771,24 @@ export default function ProjectAssistantModal({
                     fontFamily: "'JetBrains Mono', monospace",
                     fontSize: '0.6rem',
                     color: '#8A8070',
-                    letterSpacing: '0.12em',
+                    letterSpacing: '0.14em',
                     textTransform: 'uppercase',
                     marginBottom: '0.5rem',
+                    fontWeight: 600,
                   }}
                 >
-                  SUGGESTED TOPICS:
+                  SUGGESTED QUESTIONS:
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                   {suggestedPrompts.map((prompt) => (
                     <button
                       key={prompt}
                       onClick={() => handleSubmit(prompt)}
                       style={{
-                        background: 'rgba(25, 23, 19, 0.7)',
+                        background: '#141310',
                         border: '1px solid rgba(255, 248, 235, 0.08)',
                         color: '#C8BFA8',
-                        padding: '0.45rem 0.75rem',
+                        padding: '0.48rem 0.8rem',
                         borderRadius: '4px',
                         fontFamily: "'Inter', sans-serif",
                         fontSize: '0.78rem',
@@ -537,15 +797,15 @@ export default function ProjectAssistantModal({
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         textAlign: 'left',
-                        transition: 'all 180ms ease',
+                        transition: 'all 160ms ease',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(200, 130, 10, 0.12)';
+                        e.currentTarget.style.background = 'rgba(200, 130, 10, 0.1)';
                         e.currentTarget.style.borderColor = 'rgba(200, 130, 10, 0.35)';
                         e.currentTarget.style.color = '#F5EFE0';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'rgba(25, 23, 19, 0.7)';
+                        e.currentTarget.style.background = '#141310';
                         e.currentTarget.style.borderColor = 'rgba(255, 248, 235, 0.08)';
                         e.currentTarget.style.color = '#C8BFA8';
                       }}
@@ -558,12 +818,12 @@ export default function ProjectAssistantModal({
               </div>
             )}
 
-            {/* Message Feed */}
+            {/* Message Feed Area */}
             <div
               style={{
                 flex: 1,
                 overflowY: 'auto',
-                padding: '1rem 1.15rem',
+                padding: '1rem 1.25rem',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '1rem',
@@ -579,29 +839,32 @@ export default function ProjectAssistantModal({
                     flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
                   }}
                 >
-                  {/* Avatar */}
+                  {/* Small Avatar Marker */}
                   <div
                     style={{
-                      width: '26px',
-                      height: '26px',
+                      width: '24px',
+                      height: '24px',
                       borderRadius: '4px',
-                      background: msg.role === 'user' ? 'rgba(200, 130, 10, 0.2)' : '#100F0D',
+                      background: msg.role === 'user' ? 'rgba(200, 130, 10, 0.15)' : '#141310',
                       border: `1px solid ${msg.role === 'user' ? 'rgba(200, 130, 10, 0.35)' : 'rgba(255, 248, 235, 0.1)'}`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: msg.role === 'user' ? '#F5EFE0' : AMBER_LIGHT,
                       flexShrink: 0,
-                      marginTop: '2px',
+                      marginTop: '3px',
                     }}
                   >
-                    {msg.role === 'user' ? <User size={13} /> : <Bot size={13} />}
+                    {msg.role === 'user' ? (
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.6rem', color: '#F5EFE0', fontWeight: 700 }}>U</span>
+                    ) : (
+                      <AiGlyph size={14} color={AMBER_LIGHT} />
+                    )}
                   </div>
 
-                  {/* Message Bubble */}
+                  {/* Message Bubble (Wide, Comfortable Line Length) */}
                   <div
                     style={{
-                      maxWidth: msg.role === 'user' ? '82%' : '88%',
+                      maxWidth: msg.role === 'user' ? '82%' : '92%',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start',
@@ -611,21 +874,21 @@ export default function ProjectAssistantModal({
                       style={{
                         background: msg.role === 'user' ? '#221F18' : '#141310',
                         border: msg.role === 'user'
-                          ? '1px solid rgba(200, 130, 10, 0.3)'
+                          ? '1px solid rgba(200, 130, 10, 0.28)'
                           : '1px solid rgba(255, 248, 235, 0.08)',
                         borderRadius: '6px',
-                        padding: '0.75rem 0.95rem',
+                        padding: '0.75rem 1rem',
                         color: msg.role === 'user' ? '#F5EFE0' : '#E8E1D5',
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: '0.85rem',
-                        lineHeight: 1.6,
+                        fontSize: '0.855rem',
+                        lineHeight: 1.65,
                         wordBreak: 'break-word',
                       }}
                     >
                       {msg.role === 'user' ? (
                         <span style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</span>
                       ) : (
-                        <div className="assistant-markdown-content">
+                        <div className="ask-pranit-markdown">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {msg.content}
                           </ReactMarkdown>
@@ -637,8 +900,8 @@ export default function ProjectAssistantModal({
                           style={{
                             display: 'inline-block',
                             width: '4px',
-                            height: '13px',
-                            background: AMBER,
+                            height: '14px',
+                            background: AMBER_LIGHT,
                             marginLeft: '4px',
                             verticalAlign: 'middle',
                             animation: 'pulse 1s infinite',
@@ -647,7 +910,7 @@ export default function ProjectAssistantModal({
                       )}
                     </div>
 
-                    {/* Sources Citation */}
+                    {/* Compact Source References */}
                     {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && !msg.isStreaming && (
                       <div
                         style={{
@@ -680,8 +943,8 @@ export default function ProjectAssistantModal({
                               fontFamily: "'JetBrains Mono', monospace",
                               fontSize: '0.55rem',
                               color: '#C8BFA8',
-                              background: '#1A1814',
-                              padding: '1px 5px',
+                              background: '#181612',
+                              padding: '2px 6px',
                               borderRadius: '2px',
                               border: '1px solid rgba(255, 248, 235, 0.08)',
                             }}
@@ -713,7 +976,7 @@ export default function ProjectAssistantModal({
               </div>
             )}
 
-            {/* Input Form */}
+            {/* Input Form Area */}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -721,7 +984,7 @@ export default function ProjectAssistantModal({
               }}
               style={{
                 padding: '0.75rem 1rem',
-                background: 'rgba(20, 19, 16, 0.95)',
+                background: '#141310',
                 borderTop: '1px solid rgba(255, 248, 235, 0.08)',
                 display: 'flex',
                 alignItems: 'center',
@@ -733,43 +996,68 @@ export default function ProjectAssistantModal({
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about TARK AI or projects..."
+                placeholder="Ask about Pranit..."
                 disabled={isLoading}
                 style={{
                   flex: 1,
-                  background: '#12110E',
+                  background: '#0E0D0B',
                   border: '1px solid rgba(255, 248, 235, 0.1)',
                   borderRadius: '6px',
-                  padding: '0.6rem 0.85rem',
+                  padding: '0.65rem 0.9rem',
                   color: '#F5EFE0',
                   fontFamily: "'Inter', sans-serif",
-                  fontSize: '0.82rem',
+                  fontSize: '0.84rem',
                   outline: 'none',
+                  transition: 'border-color 160ms ease',
                 }}
                 onFocus={(e) => (e.target.style.borderColor = 'rgba(200, 130, 10, 0.5)')}
                 onBlur={(e) => (e.target.style.borderColor = 'rgba(255, 248, 235, 0.1)')}
               />
 
-              <button
-                type="submit"
-                disabled={isLoading || !input.trim()}
-                style={{
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '6px',
-                  background: input.trim() ? AMBER : 'rgba(255, 248, 235, 0.06)',
-                  color: input.trim() ? '#0E0D0B' : '#5A5248',
-                  border: 'none',
-                  cursor: input.trim() && !isLoading ? 'pointer' : 'default',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 180ms ease',
-                }}
-                aria-label="Send message"
-              >
-                <Send size={13} />
-              </button>
+              {isLoading ? (
+                <button
+                  type="button"
+                  onClick={handleStopGeneration}
+                  title="Stop generation"
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '6px',
+                    background: 'rgba(200, 130, 10, 0.15)',
+                    color: AMBER_LIGHT,
+                    border: '1px solid rgba(200, 130, 10, 0.35)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 160ms ease',
+                  }}
+                  aria-label="Stop generation"
+                >
+                  <Square size={12} fill={AMBER_LIGHT} />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isLoading || !input.trim()}
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '6px',
+                    background: input.trim() ? AMBER : 'rgba(255, 248, 235, 0.06)',
+                    color: input.trim() ? '#0E0D0B' : '#5A5248',
+                    border: 'none',
+                    cursor: input.trim() && !isLoading ? 'pointer' : 'default',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 160ms ease',
+                  }}
+                  aria-label="Send message"
+                >
+                  <Send size={13} />
+                </button>
+              )}
             </form>
           </motion.div>
         )}
