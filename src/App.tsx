@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Mail, Phone } from 'lucide-react';
 import ScrollExpandHero from './components/ui/scroll-expansion-hero';
 import WhoIAm from './components/ui/who-i-am';
 import TechStack from './components/ui/tech-stack';
@@ -280,6 +280,18 @@ export default function App() {
 
             <Reveal delay={0.2}>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '3.5rem', marginBottom: '3.5rem' }}>
+                <a href="mailto:guptapranit34@gmail.com"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.8rem 1.75rem', borderRadius: '3px', border: '1px solid rgba(200, 130, 10, 0.35)', background: 'rgba(200, 130, 10, 0.08)', color: '#F5EFE0', fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.8rem', textDecoration: 'none', transition: 'all 200ms ease' }}
+                  onMouseEnter={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(200, 130, 10, 0.6)'; a.style.background = 'rgba(200, 130, 10, 0.16)'; }}
+                  onMouseLeave={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(200, 130, 10, 0.35)'; a.style.background = 'rgba(200, 130, 10, 0.08)'; }}>
+                  <Mail size={14} color={AMBER} /> guptapranit34@gmail.com
+                </a>
+                <a href="tel:+919508746855"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.8rem 1.75rem', borderRadius: '3px', border: '1px solid rgba(255, 248, 235, 0.1)', color: '#C8BFA8', fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.8rem', textDecoration: 'none', transition: 'border-color 200ms ease, color 200ms ease' }}
+                  onMouseEnter={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(255, 248, 235, 0.25)'; a.style.color = '#F5EFE0'; }}
+                  onMouseLeave={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(255, 248, 235, 0.1)'; a.style.color = '#C8BFA8'; }}>
+                  <Phone size={14} /> +91 9508746855
+                </a>
                 <a href="https://github.com/gpranit16" target="_blank" rel="noreferrer"
                   style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.8rem 1.75rem', borderRadius: '3px', border: '1px solid rgba(255, 248, 235, 0.1)', color: '#C8BFA8', fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.8rem', textDecoration: 'none', transition: 'border-color 200ms ease, color 200ms ease' }}
                   onMouseEnter={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(255, 248, 235, 0.25)'; a.style.color = '#F5EFE0'; }}
@@ -297,9 +309,16 @@ export default function App() {
 
             {/* Footer */}
             <div style={{ borderTop: '1px solid rgba(255, 248, 235, 0.06)', paddingTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: '1rem', fontStyle: 'italic', color: 'rgba(245, 239, 224, 0.25)', fontWeight: 700 }}>Pranit Kumar</span>
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.6rem', color: '#5A5248', letterSpacing: '0.1em' }}>© 2025 · Built with precision</span>
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.6rem', color: AMBER, letterSpacing: '0.08em' }}>guptapranit34@gmail.com</span>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: '1rem', fontStyle: 'italic', color: 'rgba(245, 239, 224, 0.35)', fontWeight: 700 }}>Pranit Kumar</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.65rem', color: '#5A5248', letterSpacing: '0.1em' }}>© 2025 · Built with precision</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+                <a href="mailto:guptapranit34@gmail.com" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.65rem', color: AMBER, letterSpacing: '0.08em', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px', transition: 'opacity 200ms ease' }} onMouseEnter={e => (e.currentTarget.style.opacity = '0.8')} onMouseLeave={e => (e.currentTarget.style.opacity = '1')}>
+                  <Mail size={12} /> guptapranit34@gmail.com
+                </a>
+                <a href="tel:+919508746855" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.65rem', color: '#C8BFA8', letterSpacing: '0.08em', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px', transition: 'color 200ms ease' }} onMouseEnter={e => (e.currentTarget.style.color = AMBER)} onMouseLeave={e => (e.currentTarget.style.color = '#C8BFA8')}>
+                  <Phone size={12} /> +91 9508746855
+                </a>
+              </div>
             </div>
           </div>
         </section>
