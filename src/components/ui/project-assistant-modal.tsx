@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import { Send, RefreshCw, X, Sparkles, FileText, Square, GripHorizontal } from 'lucide-react';
+import { Send, RefreshCw, X, Sparkles, FileText, Square, GripHorizontal, ChevronDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -61,7 +61,8 @@ export default function ProjectAssistantModal({
   initialQuery,
 }: ProjectAssistantModalProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
-  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+  const isControlled = controlledIsOpen !== undefined;
+  const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
 
   const setIsOpen = useCallback(
     (open: boolean) => {
@@ -86,9 +87,11 @@ export default function ProjectAssistantModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
 
   const dragControls = useDragControls();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const isAutoScrollActiveRef = useRef<boolean>(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -101,8 +104,22 @@ export default function ProjectAssistantModal({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior,
+      });
+    }
+  }, []);
+
+  const handleChatScroll = () => {
+    if (!chatContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    const isNearBottom = distanceFromBottom < 70;
+    isAutoScrollActiveRef.current = isNearBottom;
+    setShowScrollToBottom(!isNearBottom && scrollHeight > clientHeight + 100);
   };
 
   const handleStopGeneration = () => {
@@ -146,6 +163,8 @@ export default function ProjectAssistantModal({
 
     setMessages(prev => [...prev, userMsg, initialAssistantMsg]);
     setIsLoading(true);
+    isAutoScrollActiveRef.current = true;
+    setTimeout(() => scrollToBottom('smooth'), 50);
 
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
@@ -239,7 +258,7 @@ export default function ProjectAssistantModal({
       setIsLoading(false);
       abortControllerRef.current = null;
     }
-  }, [input, isLoading, messages]);
+  }, [input, isLoading, messages, scrollToBottom]);
 
   useEffect(() => {
     const handleCustomOpen = (e: Event) => {
@@ -256,10 +275,12 @@ export default function ProjectAssistantModal({
 
   useEffect(() => {
     if (isOpen) {
-      scrollToBottom();
+      if (isAutoScrollActiveRef.current) {
+        scrollToBottom('smooth');
+      }
       setTimeout(() => inputRef.current?.focus(), 250);
     }
-  }, [isOpen, messages]);
+  }, [isOpen, messages, scrollToBottom]);
 
   useEffect(() => {
     if (initialQuery && initialQuery.trim().length > 0) {
@@ -284,6 +305,23 @@ export default function ProjectAssistantModal({
   return (
     <>
       <style>{`
+        .ask-pranit-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(200, 130, 10, 0.3) rgba(14, 13, 11, 0.5);
+        }
+        .ask-pranit-scroll::-webkit-scrollbar {
+          width: 5px;
+        }
+        .ask-pranit-scroll::-webkit-scrollbar-track {
+          background: rgba(14, 13, 11, 0.6);
+        }
+        .ask-pranit-scroll::-webkit-scrollbar-thumb {
+          background: rgba(200, 130, 10, 0.25);
+          border-radius: 4px;
+        }
+        .ask-pranit-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(200, 130, 10, 0.5);
+        }
         .ask-pranit-markdown {
           font-family: 'Inter', sans-serif;
           color: #E8E1D5;
@@ -498,6 +536,7 @@ export default function ProjectAssistantModal({
                 if (!isMobile) dragControls.start(e);
               }}
               style={{
+                flexShrink: 0,
                 padding: '0.9rem 1.25rem',
                 background: '#141310',
                 borderBottom: '1px solid rgba(255, 248, 235, 0.08)',
@@ -620,6 +659,7 @@ export default function ProjectAssistantModal({
             {messages.length <= 1 && (
               <div
                 style={{
+                  flexShrink: 0,
                   padding: '0.85rem 1.25rem 0.35rem',
                   borderBottom: '1px solid rgba(255, 248, 235, 0.05)',
                   background: 'rgba(20, 19, 16, 0.4)',
@@ -679,13 +719,20 @@ export default function ProjectAssistantModal({
 
             {/* Message Feed Area */}
             <div
+              ref={chatContainerRef}
+              onScroll={handleChatScroll}
+              className="ask-pranit-scroll"
               style={{
-                flex: 1,
+                flex: '1 1 0%',
+                minHeight: 0,
                 overflowY: 'auto',
+                overscrollBehavior: 'contain',
+                WebkitOverflowScrolling: 'touch',
                 padding: '1rem 1.25rem',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '1rem',
+                position: 'relative',
               }}
             >
               {messages.map((msg) => (
@@ -816,13 +863,50 @@ export default function ProjectAssistantModal({
                   </div>
                 </div>
               ))}
-              <div ref={messagesEndRef} />
             </div>
+
+            {/* Jump to Latest Scroll Button */}
+            <AnimatePresence>
+              {showScrollToBottom && (
+                <motion.button
+                  initial={{ opacity: 0, y: 8, scale: 0.92 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.92 }}
+                  onClick={() => {
+                    isAutoScrollActiveRef.current = true;
+                    scrollToBottom('smooth');
+                  }}
+                  style={{
+                    position: 'absolute',
+                    bottom: '68px',
+                    right: '1.25rem',
+                    zIndex: 20,
+                    background: '#1A1813',
+                    border: '1px solid rgba(200, 130, 10, 0.45)',
+                    color: AMBER_LIGHT,
+                    borderRadius: '9999px',
+                    padding: '0.32rem 0.68rem',
+                    fontSize: '0.68rem',
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.85), 0 0 10px rgba(200, 130, 10, 0.2)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span>Latest</span>
+                  <ChevronDown size={13} />
+                </motion.button>
+              )}
+            </AnimatePresence>
 
             {/* Error Notification */}
             {error && (
               <div
                 style={{
+                  flexShrink: 0,
                   padding: '0.5rem 1rem',
                   background: 'rgba(239, 68, 68, 0.12)',
                   borderTop: '1px solid rgba(239, 68, 68, 0.25)',
@@ -842,6 +926,7 @@ export default function ProjectAssistantModal({
                 handleSubmit();
               }}
               style={{
+                flexShrink: 0,
                 padding: '0.75rem 1rem',
                 background: '#141310',
                 borderTop: '1px solid rgba(255, 248, 235, 0.08)',
