@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X, Layers, Maximize2, Terminal } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Layers, Maximize2, Terminal, ExternalLink } from 'lucide-react';
 import { SiGithub } from 'react-icons/si';
-import TarkAssistant from './tark-assistant';
+import ChurnAssistant from './churn-assistant';
 
 const AMBER = '#C8820A';
 const AMBER_LIGHT = '#D4960F';
 
-interface ProjectScreenshot {
+interface ChurnScreenshot {
   id: string;
   title: string;
   subtitle: string;
@@ -15,63 +15,53 @@ interface ProjectScreenshot {
   tag: string;
 }
 
-const screenshots: ProjectScreenshot[] = [
+const churnScreenshots: ChurnScreenshot[] = [
   {
-    id: 'workspace',
-    title: 'TARK AI — WORKSPACE',
-    subtitle: 'Conversational AI · Contextual multi-model workspace · Active session',
-    src: '/assets/tark_workspace.png',
-    tag: 'WORKSPACE',
+    id: 'retention',
+    title: 'CHURN REAPER — RETENTION & ECONOMICS',
+    subtitle: 'Deterministic financial evaluation of candidate retention strategies and profit-at-risk',
+    src: '/assets/churn_retention.png',
+    tag: 'RETENTION & ECONOMICS',
   },
   {
-    id: 'auth',
-    title: 'TARK AI — AUTH',
-    subtitle: 'Encrypted session authentication & user onboarding experience',
-    src: '/assets/tark_auth.png',
-    tag: 'AUTH',
+    id: 'hero',
+    title: 'CHURN REAPER — PRODUCT CHURN',
+    subtitle: 'Executive intelligence platform overview combining regularized XGBoost & NVIDIA Nemotron',
+    src: '/assets/churn_hero.png',
+    tag: 'PRODUCT CHURN',
   },
   {
-    id: 'myspace',
-    title: 'TARK AI — MY SPACE',
-    subtitle: 'Synchronized intelligence pulse & AI daily planning engine',
-    src: '/assets/tark_myspace.png',
-    tag: 'MY SPACE',
-  },
-  {
-    id: 'knowledge',
-    title: 'TARK AI — KNOWLEDGE BASE',
-    subtitle: 'Hybrid semantic & keyword search · RAG document indexing',
-    src: '/assets/tark_knowledge.png',
-    tag: 'KNOWLEDGE',
-  },
-  {
-    id: 'tools',
-    title: 'TARK AI — TOOL INFRASTRUCTURE',
-    subtitle: '44 registered tools · AST sandboxing & dynamic tool execution',
-    src: '/assets/tark_tools.png',
-    tag: 'TOOLS',
-  },
-  {
-    id: 'tasks',
-    title: 'TARK AI — TASKS & PLANNING',
-    subtitle: 'Personal OS · smart task scheduling & automated workflows',
-    src: '/assets/tark_tasks.png',
-    tag: 'TASKS',
+    id: 'dataset',
+    title: 'CHURN REAPER — MODEL / SIMULATION',
+    subtitle: 'Dataset churn analysis studio with automated target detection & single customer inspection',
+    src: '/assets/churn_dataset.png',
+    tag: 'MODEL / SIMULATION',
   },
 ];
 
-export default function TarkAiShowcase() {
+export default function ChurnReaperShowcase() {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [direction, setDirection] = useState<number>(0);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  // Body scroll locking when full lightbox is active
+  useEffect(() => {
+    if (activeIdx !== null) {
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prevOverflow;
+      };
+    }
+  }, [activeIdx]);
+
   const prevImage = useCallback(() => {
     setDirection(-1);
     setActiveIdx((curr) => {
       if (curr === null) return 0;
-      return (curr - 1 + screenshots.length) % screenshots.length;
+      return (curr - 1 + churnScreenshots.length) % churnScreenshots.length;
     });
   }, []);
 
@@ -79,7 +69,7 @@ export default function TarkAiShowcase() {
     setDirection(1);
     setActiveIdx((curr) => {
       if (curr === null) return 0;
-      return (curr + 1) % screenshots.length;
+      return (curr + 1) % churnScreenshots.length;
     });
   }, []);
 
@@ -112,14 +102,12 @@ export default function TarkAiShowcase() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeIdx, isOpen, prevImage, nextImage, closeModal]);
 
-  // Touch / Pan handling for modal
+  // Touch / Pan handling for lightbox modal
   const handleDragEnd = (_: unknown, info: PanInfo) => {
-    // Vertical swipe down -> close
     if (info.offset.y > 80 || info.velocity.y > 350) {
       closeModal();
       return;
     }
-    // Horizontal swipe -> navigate
     if (info.offset.x > 60 || info.velocity.x > 250) {
       prevImage();
     } else if (info.offset.x < -60 || info.velocity.x < -250) {
@@ -151,28 +139,27 @@ export default function TarkAiShowcase() {
   };
 
   return (
-    <section 
-      id="tark-ai" 
+    <section
+      id="churn-reaper"
       style={{
         position: 'relative',
         padding: '5.5rem 2rem 5.5rem',
         background: '#0E0D0B',
-        overflow: 'hidden',
       }}
     >
-      {/* Subtle ambient lighting consistent with site */}
-      <div 
+      {/* Ambient lighting */}
+      <div
         style={{
           position: 'absolute',
           top: '35%',
-          right: '20%',
-          transform: 'translate(50%, -35%)',
+          left: '20%',
+          transform: 'translate(-50%, -35%)',
           width: '750px',
           height: '500px',
-          background: 'radial-gradient(ellipse at center, rgba(200, 130, 10, 0.035) 0%, rgba(200, 130, 10, 0) 70%)',
+          background: 'radial-gradient(ellipse at center, rgba(200, 130, 10, 0.03) 0%, rgba(200, 130, 10, 0) 70%)',
           pointerEvents: 'none',
           zIndex: 1,
-        }} 
+        }}
       />
 
       <motion.div
@@ -183,18 +170,18 @@ export default function TarkAiShowcase() {
         style={{ maxWidth: '1240px', margin: '0 auto', width: '100%', position: 'relative', zIndex: 10 }}
       >
         {/* 2-Part Editorial Composition */}
-        <div 
+        <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'minmax(320px, 1.05fr) minmax(360px, 1.25fr)',
             gap: '4rem',
             alignItems: 'center',
           }}
-          className="tark-layout"
+          className="churn-layout"
         >
           <style>{`
             @media (max-width: 960px) {
-              .tark-layout {
+              .churn-layout {
                 grid-template-columns: 1fr !important;
                 gap: 3.5rem !important;
               }
@@ -225,7 +212,7 @@ export default function TarkAiShowcase() {
                   textTransform: 'uppercase',
                 }}
               >
-                PROJECT 01 / 03
+                PROJECT 03 / 03
               </span>
               <span
                 style={{
@@ -237,7 +224,7 @@ export default function TarkAiShowcase() {
                   fontWeight: 500,
                 }}
               >
-                FEATURED WORK · AI WORKSPACE OS
+                APPLIED ML &amp; RETENTION INTELLIGENCE
               </span>
             </div>
 
@@ -254,23 +241,23 @@ export default function TarkAiShowcase() {
                   margin: '0 0 0.5rem 0',
                 }}
               >
-                TARK AI
+                CHURN REAPER
               </h2>
               <p
                 style={{
                   fontFamily: "'Inter', sans-serif",
                   fontSize: 'clamp(1.05rem, 1.35vw, 1.2rem)',
-                  color: '#E8A838',
+                  color: '#57D4A2',
                   margin: 0,
                   fontWeight: 600,
                   letterSpacing: '-0.01em',
                 }}
               >
-                Agentic AI Workspace &amp; Personal Productivity System
+                AI-Assisted Retention Intelligence Platform
               </p>
             </div>
 
-            {/* Beyond Chat Line */}
+            {/* Positioning Line */}
             <p
               style={{
                 fontFamily: "'Inter', sans-serif",
@@ -278,12 +265,13 @@ export default function TarkAiShowcase() {
                 color: '#D4C9B4',
                 lineHeight: 1.6,
                 margin: 0,
+                maxWidth: '520px',
               }}
             >
-              Beyond chat — an autonomous full-stack AI system for <span style={{ color: '#E8A838', fontWeight: 600 }}>reasoning</span>, <span style={{ color: '#68B5E8', fontWeight: 600 }}>retrieval</span>, <span style={{ color: '#A78BFA', fontWeight: 600 }}>memory</span>, and <span style={{ color: '#57D4A2', fontWeight: 600 }}>action</span>.
+              Where <span style={{ color: '#57D4A2', fontWeight: 600 }}>predictive machine learning</span>, <span style={{ color: '#E8A838', fontWeight: 600 }}>TreeSHAP risk attribution</span>, and <span style={{ color: '#68B5E8', fontWeight: 600 }}>retention economics</span> come together.
             </p>
 
-            {/* Short Project Description */}
+            {/* Description */}
             <p
               style={{
                 fontFamily: "'Inter', sans-serif",
@@ -291,45 +279,14 @@ export default function TarkAiShowcase() {
                 lineHeight: 1.75,
                 color: '#AFA594',
                 margin: 0,
+                maxWidth: '540px',
               }}
             >
-              Engineered with <span style={{ color: '#F5EFE0', fontWeight: 500 }}>LangGraph agentic graphs</span>, <span style={{ color: '#68B5E8', fontWeight: 500 }}>pgvector hybrid search</span>, and <span style={{ color: '#57D4A2', fontWeight: 500 }}>AST-sandboxed tool execution</span> to bring conversational AI, research, and coding workflows into one cohesive operating system.
+              Combines a <span style={{ color: '#57D4A2', fontWeight: 500 }}>regularized XGBoost model (84.81% ROC-AUC)</span>, <span style={{ color: '#E8A838', fontWeight: 500 }}>TreeSHAP risk drivers</span>, and <span style={{ color: '#A78BFA', fontWeight: 500 }}>NVIDIA Nemotron 30B</span> with a <span style={{ color: '#F5EFE0', fontWeight: 500 }}>deterministic financial engine</span> to validate net ROI before spending retention capital.
             </p>
 
             {/* Colorful Capabilities Badges */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', marginTop: '0.25rem' }}>
-              <span
-                style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: '0.625rem',
-                  color: '#E8A838',
-                  background: 'rgba(232, 168, 56, 0.08)',
-                  border: '1px solid rgba(232, 168, 56, 0.25)',
-                  padding: '3px 8px',
-                  borderRadius: '3px',
-                  letterSpacing: '0.08em',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                }}
-              >
-                AGENTIC GRAPH OS
-              </span>
-              <span
-                style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: '0.625rem',
-                  color: '#68B5E8',
-                  background: 'rgba(104, 181, 232, 0.08)',
-                  border: '1px solid rgba(104, 181, 232, 0.25)',
-                  padding: '3px 8px',
-                  borderRadius: '3px',
-                  letterSpacing: '0.08em',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                }}
-              >
-                HYBRID RAG &amp; MEMORY
-              </span>
               <span
                 style={{
                   fontFamily: "'JetBrains Mono', monospace",
@@ -344,7 +301,23 @@ export default function TarkAiShowcase() {
                   textTransform: 'uppercase',
                 }}
               >
-                44 REGISTERED TOOLS
+                REGULARIZED XGBOOST · 84.81% AUC
+              </span>
+              <span
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: '0.625rem',
+                  color: '#E8A838',
+                  background: 'rgba(232, 168, 56, 0.08)',
+                  border: '1px solid rgba(232, 168, 56, 0.25)',
+                  padding: '3px 8px',
+                  borderRadius: '3px',
+                  letterSpacing: '0.08em',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                }}
+              >
+                TREESHAP ATTRIBUTION
               </span>
               <span
                 style={{
@@ -360,19 +333,35 @@ export default function TarkAiShowcase() {
                   textTransform: 'uppercase',
                 }}
               >
-                MULTI-MODEL ROUTING
+                NVIDIA NEMOTRON 30B
+              </span>
+              <span
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: '0.625rem',
+                  color: '#68B5E8',
+                  background: 'rgba(104, 181, 232, 0.08)',
+                  border: '1px solid rgba(104, 181, 232, 0.25)',
+                  padding: '3px 8px',
+                  borderRadius: '3px',
+                  letterSpacing: '0.08em',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                }}
+              >
+                DETERMINISTIC ROI ENGINE
               </span>
             </div>
 
-            {/* Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+            {/* Actions (Single Unified Row) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  padding: '0.75rem 1.4rem',
+                  padding: '0.7rem 1.25rem',
                   background: '#141310',
                   border: `1px solid rgba(200, 130, 10, 0.35)`,
                   color: '#F5EFE0',
@@ -382,6 +371,7 @@ export default function TarkAiShowcase() {
                   letterSpacing: '0.04em',
                   borderRadius: '3px',
                   cursor: 'pointer',
+                  whiteSpace: 'nowrap',
                   transition: 'background 200ms ease, border-color 200ms ease, transform 200ms ease',
                 }}
                 onMouseEnter={(e) => {
@@ -400,14 +390,14 @@ export default function TarkAiShowcase() {
               </button>
 
               <a
-                href="https://github.com/gpranit16/tark-ai"
+                href="https://churn-reaper-y1d3.vercel.app"
                 target="_blank"
                 rel="noreferrer"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  padding: '0.75rem 1.4rem',
+                  padding: '0.7rem 1.25rem',
                   background: 'transparent',
                   border: '1px solid rgba(255, 248, 235, 0.12)',
                   color: '#C8BFA8',
@@ -417,6 +407,43 @@ export default function TarkAiShowcase() {
                   letterSpacing: '0.04em',
                   borderRadius: '3px',
                   textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                  transition: 'border-color 200ms ease, color 200ms ease, transform 200ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 248, 235, 0.3)';
+                  e.currentTarget.style.color = '#F5EFE0';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 248, 235, 0.12)';
+                  e.currentTarget.style.color = '#C8BFA8';
+                  e.currentTarget.style.transform = 'none';
+                }}
+              >
+                <ExternalLink size={13} color={AMBER_LIGHT} />
+                <span>VIEW PROJECT ↗</span>
+              </a>
+
+              <a
+                href="https://github.com/gpranit16/churn-reaper"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.7rem 1.25rem',
+                  background: 'transparent',
+                  border: '1px solid rgba(255, 248, 235, 0.12)',
+                  color: '#C8BFA8',
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.8125rem',
+                  fontWeight: 500,
+                  letterSpacing: '0.04em',
+                  borderRadius: '3px',
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
                   transition: 'border-color 200ms ease, color 200ms ease, transform 200ms ease',
                 }}
                 onMouseEnter={(e) => {
@@ -486,14 +513,14 @@ export default function TarkAiShowcase() {
                   boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.4)',
                 }}
               >
-                <div 
+                <div
                   style={{
                     width: '5px',
                     height: '5px',
                     borderRadius: '50%',
                     background: AMBER,
                     boxShadow: '0 0 6px rgba(200, 130, 10, 0.6)',
-                  }} 
+                  }}
                 />
                 <span
                   style={{
@@ -505,7 +532,7 @@ export default function TarkAiShowcase() {
                     textTransform: 'uppercase',
                   }}
                 >
-                  TARK AI / WORKSPACE
+                  CHURN REAPER / WORKSPACE
                 </span>
               </div>
 
@@ -522,7 +549,7 @@ export default function TarkAiShowcase() {
                   zIndex: 1,
                 }}
               >
-                <div 
+                <div
                   style={{
                     position: 'absolute',
                     inset: '6px',
@@ -544,7 +571,7 @@ export default function TarkAiShowcase() {
                   justifyContent: 'center',
                 }}
               >
-                {/* 3rd Screenshot: My Space (Subtle deep layer) */}
+                {/* 3rd Screenshot: Dataset Studio (Deepest layer) */}
                 <motion.div
                   animate={
                     isOpen
@@ -573,13 +600,29 @@ export default function TarkAiShowcase() {
                   whileHover={{ scale: 0.92, opacity: 1, borderColor: 'rgba(200, 130, 10, 0.3)' }}
                 >
                   <img
-                    src={screenshots[2].src}
-                    alt={screenshots[2].title}
+                    src={churnScreenshots[2].src}
+                    alt={churnScreenshots[2].title}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '6px',
+                      left: '8px',
+                      background: 'rgba(14, 13, 11, 0.85)',
+                      backdropFilter: 'blur(4px)',
+                      padding: '2px 6px',
+                      borderRadius: '2px',
+                      border: '1px solid rgba(255, 248, 235, 0.08)',
+                    }}
+                  >
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.5625rem', color: '#C8BFA8', letterSpacing: '0.08em' }}>
+                      MODEL / SIMULATION
+                    </span>
+                  </div>
                 </motion.div>
 
-                {/* 2nd Screenshot: Auth (Secondary layer) */}
+                {/* 2nd Screenshot: Product Overview (Secondary layer) */}
                 <motion.div
                   animate={
                     isOpen
@@ -608,8 +651,8 @@ export default function TarkAiShowcase() {
                   whileHover={{ scale: isOpen ? 0.98 : 0.97, borderColor: 'rgba(200, 130, 10, 0.35)' }}
                 >
                   <img
-                    src={screenshots[1].src}
-                    alt={screenshots[1].title}
+                    src={churnScreenshots[1].src}
+                    alt={churnScreenshots[1].title}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                   <div
@@ -625,12 +668,12 @@ export default function TarkAiShowcase() {
                     }}
                   >
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.5625rem', color: '#C8BFA8', letterSpacing: '0.08em' }}>
-                      AUTH
+                      PRODUCT CHURN
                     </span>
                   </div>
                 </motion.div>
 
-                {/* 1st Screenshot: Primary Workspace Hero */}
+                {/* 1st Screenshot: Dominant Retention & Economics Hero */}
                 <motion.div
                   animate={
                     isOpen
@@ -659,8 +702,8 @@ export default function TarkAiShowcase() {
                   whileHover={{ scale: isOpen ? 1.05 : 1.02, borderColor: 'rgba(200, 130, 10, 0.45)' }}
                 >
                   <img
-                    src={screenshots[0].src}
-                    alt={screenshots[0].title}
+                    src={churnScreenshots[0].src}
+                    alt={churnScreenshots[0].title}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                   <div
@@ -680,7 +723,7 @@ export default function TarkAiShowcase() {
                   >
                     <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: AMBER }} />
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.5875rem', fontWeight: 600, color: '#F5EFE0', letterSpacing: '0.08em' }}>
-                      WORKSPACE
+                      RETENTION &amp; ECONOMICS
                     </span>
                   </div>
 
@@ -706,7 +749,7 @@ export default function TarkAiShowcase() {
                 </motion.div>
               </div>
 
-              {/* Folder Front Lip */}
+              {/* Folder Front Lip Pocket (Matches Syncora Exact Style) */}
               <div
                 style={{
                   position: 'absolute',
@@ -745,14 +788,14 @@ export default function TarkAiShowcase() {
                     fontWeight: 600,
                   }}
                 >
-                  {screenshots.length} ASSETS
+                  03 ASSETS
                 </span>
               </div>
             </div>
           </motion.div>
         </div>
 
-        {/* ── TARK AI Project Intelligence CTA Strip ── */}
+        {/* ── CHURN REAPER AI Project Intelligence CTA Strip (Exact Syncora/TARK Style) ── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -804,7 +847,7 @@ export default function TarkAiShowcase() {
                   lineHeight: 1.3,
                 }}
               >
-                CURIOUS ABOUT TARK AI?
+                CURIOUS ABOUT CHURN REAPER?
               </p>
               <p
                 style={{
@@ -815,7 +858,7 @@ export default function TarkAiShowcase() {
                   lineHeight: 1.4,
                 }}
               >
-                Ask about its architecture, RAG pipeline, memory, models, tools and implementation.
+                Ask about its architecture, XGBoost tuning, TreeSHAP attribution, Nemotron, and financial ROI engine.
               </p>
             </div>
           </div>
@@ -824,12 +867,9 @@ export default function TarkAiShowcase() {
           <button
             onClick={() => setIsChatOpen(true)}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.55rem 1.15rem',
-              background: '#1A1813',
-              border: `1px solid rgba(200, 130, 10, 0.35)`,
+              padding: '0.65rem 1.25rem',
+              background: 'rgba(200, 130, 10, 0.12)',
+              border: '1px solid rgba(200, 130, 10, 0.35)',
               color: '#F5EFE0',
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: '0.6875rem',
@@ -838,225 +878,142 @@ export default function TarkAiShowcase() {
               textTransform: 'uppercase',
               borderRadius: '3px',
               cursor: 'pointer',
-              transition: 'all 180ms ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'background 200ms ease, border-color 200ms ease, transform 200ms ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(200, 130, 10, 0.15)';
-              e.currentTarget.style.borderColor = AMBER_LIGHT;
+              e.currentTarget.style.background = AMBER;
+              e.currentTarget.style.color = '#0E0D0B';
+              e.currentTarget.style.borderColor = AMBER;
               e.currentTarget.style.transform = 'translateY(-1px)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#1A1813';
+              e.currentTarget.style.background = 'rgba(200, 130, 10, 0.12)';
+              e.currentTarget.style.color = '#F5EFE0';
               e.currentTarget.style.borderColor = 'rgba(200, 130, 10, 0.35)';
               e.currentTarget.style.transform = 'none';
             }}
           >
-            <span>ASK TARK</span>
-            <span style={{ color: AMBER_LIGHT }}>↗</span>
+            <span>ASK CHURN REAPER ↗</span>
           </button>
         </motion.div>
-
-        {/* ── TARK Dedicated Movable Floating Assistant ── */}
-        <TarkAssistant
-          isOpen={isChatOpen}
-          onClose={() => setIsChatOpen(false)}
-        />
-
       </motion.div>
 
-      {/* ── Focused Image Viewer Modal with True Navigation ── */}
+      {/* ── FOCUSED SCREENSHOT LIGHTBOX VIEWER ── */}
       <AnimatePresence>
         {activeIdx !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.22 }}
             onClick={closeModal}
             style={{
               position: 'fixed',
               inset: 0,
-              zIndex: 9999,
-              background: 'rgba(10, 9, 8, 0.95)',
-              backdropFilter: 'blur(10px)',
+              background: 'rgba(5, 5, 4, 0.94)',
+              backdropFilter: 'blur(12px)',
+              zIndex: 10000,
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '1.5rem',
-              cursor: 'zoom-out',
+              padding: '2rem',
             }}
           >
-            {/* Modal Dialog Card with Pan/Swipe Handling */}
-            <motion.div
-              drag="y"
-              dragConstraints={{ top: 0, bottom: 0 }}
-              dragElastic={0.6}
-              onDragEnd={handleDragEnd}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 280, damping: 26 }}
+            <div
               onClick={(e) => e.stopPropagation()}
               style={{
                 position: 'relative',
-                maxWidth: '1140px',
                 width: '100%',
-                maxHeight: '92vh',
+                maxWidth: '1100px',
+                maxHeight: '90vh',
+                display: 'flex',
+                flexDirection: 'column',
                 background: '#141310',
                 borderRadius: '6px',
                 border: '1px solid rgba(255, 248, 235, 0.12)',
-                boxShadow: '0 30px 60px -15px rgba(0, 0, 0, 0.95), 0 0 30px rgba(200, 130, 10, 0.05)',
+                boxShadow: '0 30px 60px -12px rgba(0, 0, 0, 0.95)',
                 overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                cursor: 'default',
               }}
             >
-              {/* Modal Header Bar with Counter */}
+              {/* Lightbox Header Bar */}
               <div
                 style={{
+                  padding: '0.85rem 1.25rem',
+                  borderBottom: '1px solid rgba(255, 248, 235, 0.08)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '0.85rem 1.4rem',
-                  borderBottom: '1px solid rgba(255, 248, 235, 0.08)',
-                  background: '#100F0D',
+                  background: '#0E0D0B',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: AMBER }} />
-                  <div>
-                    <h4
-                      style={{
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: '0.8125rem',
-                        fontWeight: 600,
-                        color: '#F5EFE0',
-                        letterSpacing: '0.08em',
-                        margin: 0,
-                      }}
-                    >
-                      {screenshots[activeIdx].title}
-                    </h4>
-                    <p
-                      style={{
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: '0.75rem',
-                        color: '#8A8070',
-                        margin: '0.15rem 0 0 0',
-                      }}
-                    >
-                      {screenshots[activeIdx].subtitle}
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  {/* Dynamic Image Counter */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <span
                     style={{
                       fontFamily: "'JetBrains Mono', monospace",
                       fontSize: '0.75rem',
-                      color: AMBER_LIGHT,
-                      letterSpacing: '0.12em',
                       fontWeight: 600,
+                      color: AMBER_LIGHT,
+                      letterSpacing: '0.1em',
                     }}
                   >
-                    {String(activeIdx + 1).padStart(2, '0')} / {String(screenshots.length).padStart(2, '0')}
+                    {String(activeIdx + 1).padStart(2, '0')} / {String(churnScreenshots.length).padStart(2, '0')}
                   </span>
-
-                  {/* Close Button */}
-                  <button
-                    onClick={closeModal}
+                  <span style={{ color: 'rgba(255, 248, 235, 0.2)' }}>|</span>
+                  <span
                     style={{
-                      background: 'rgba(255, 248, 235, 0.05)',
-                      border: '1px solid rgba(255, 248, 235, 0.1)',
-                      borderRadius: '4px',
-                      width: '32px',
-                      height: '32px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#C8BFA8',
-                      cursor: 'pointer',
-                      transition: 'background 200ms ease, color 200ms ease',
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '0.8125rem',
+                      fontWeight: 500,
+                      color: '#F5EFE0',
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(200, 130, 10, 0.15)';
-                      e.currentTarget.style.color = '#F5EFE0';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 248, 235, 0.05)';
-                      e.currentTarget.style.color = '#C8BFA8';
-                    }}
-                    aria-label="Close Preview"
                   >
-                    <X size={16} />
-                  </button>
+                    {churnScreenshots[activeIdx].title}
+                  </span>
                 </div>
-              </div>
 
-              {/* Main Image Stage with Functional Arrow Controls */}
-              <div
-                style={{
-                  position: 'relative',
-                  padding: '1.25rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: '#0E0D0B',
-                  minHeight: '480px',
-                  maxHeight: 'calc(88vh - 120px)',
-                  overflow: 'hidden',
-                }}
-              >
-                {/* Previous Button */}
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    prevImage();
-                  }}
+                  onClick={closeModal}
                   style={{
-                    position: 'absolute',
-                    left: '1.25rem',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    zIndex: 10,
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    background: 'rgba(14, 13, 11, 0.88)',
-                    backdropFilter: 'blur(6px)',
-                    border: '1px solid rgba(255, 248, 235, 0.15)',
-                    color: '#F5EFE0',
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#8A8070',
+                    cursor: 'pointer',
+                    padding: '0.25rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    cursor: 'pointer',
-                    transition: 'background 200ms ease, border-color 200ms ease, transform 150ms ease',
+                    borderRadius: '3px',
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(200, 130, 10, 0.25)';
-                    e.currentTarget.style.borderColor = AMBER_LIGHT;
-                    e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(14, 13, 11, 0.88)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 248, 235, 0.15)';
-                    e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
-                  }}
-                  aria-label="Previous image"
                 >
-                  <ChevronLeft size={22} />
+                  <X size={18} />
                 </button>
+              </div>
 
-                {/* Animated Image with Directional Crossfade Transition */}
+              {/* Main Image Stage */}
+              <motion.div
+                drag="y"
+                dragConstraints={{ top: 0, bottom: 0 }}
+                onDragEnd={handleDragEnd}
+                style={{
+                  position: 'relative',
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '1rem',
+                  minHeight: '360px',
+                  maxHeight: 'calc(90vh - 120px)',
+                  background: '#0E0D0B',
+                  overflow: 'hidden',
+                }}
+              >
                 <AnimatePresence custom={direction} mode="wait">
                   <motion.img
-                    key={screenshots[activeIdx].id}
-                    src={screenshots[activeIdx].src}
-                    alt={screenshots[activeIdx].title}
+                    key={activeIdx}
+                    src={churnScreenshots[activeIdx].src}
+                    alt={churnScreenshots[activeIdx].title}
                     custom={direction}
                     variants={slideVariants}
                     initial="enter"
@@ -1064,111 +1021,103 @@ export default function TarkAiShowcase() {
                     exit="exit"
                     style={{
                       maxWidth: '100%',
-                      maxHeight: '72vh',
+                      maxHeight: 'calc(80vh - 120px)',
                       objectFit: 'contain',
                       borderRadius: '3px',
-                      boxShadow: '0 8px 30px rgba(0, 0, 0, 0.9)',
-                      display: 'block',
+                      border: '1px solid rgba(255, 248, 235, 0.06)',
                     }}
                   />
                 </AnimatePresence>
 
-                {/* Next Button */}
+                {/* Navigation Arrows */}
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    nextImage();
+                  onClick={prevImage}
+                  style={{
+                    position: 'absolute',
+                    left: '1.25rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'rgba(20, 19, 16, 0.8)',
+                    border: '1px solid rgba(255, 248, 235, 0.15)',
+                    color: '#F5EFE0',
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    backdropFilter: 'blur(6px)',
+                    transition: 'border-color 200ms ease, background 200ms ease',
                   }}
+                >
+                  <ChevronLeft size={20} />
+                </button>
+
+                <button
+                  onClick={nextImage}
                   style={{
                     position: 'absolute',
                     right: '1.25rem',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    zIndex: 10,
+                    background: 'rgba(20, 19, 16, 0.8)',
+                    border: '1px solid rgba(255, 248, 235, 0.15)',
+                    color: '#F5EFE0',
                     width: '40px',
                     height: '40px',
                     borderRadius: '50%',
-                    background: 'rgba(14, 13, 11, 0.88)',
-                    backdropFilter: 'blur(6px)',
-                    border: '1px solid rgba(255, 248, 235, 0.15)',
-                    color: '#F5EFE0',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    transition: 'background 200ms ease, border-color 200ms ease, transform 150ms ease',
+                    backdropFilter: 'blur(6px)',
+                    transition: 'border-color 200ms ease, background 200ms ease',
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(200, 130, 10, 0.25)';
-                    e.currentTarget.style.borderColor = AMBER_LIGHT;
-                    e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(14, 13, 11, 0.88)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 248, 235, 0.15)';
-                    e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
-                  }}
-                  aria-label="Next image"
                 >
-                  <ChevronRight size={22} />
+                  <ChevronRight size={20} />
                 </button>
-              </div>
+              </motion.div>
 
-              {/* Modal Footer Controls & Thumbnails */}
+              {/* Lightbox Footer Caption */}
               <div
                 style={{
-                  padding: '0.65rem 1.4rem',
-                  background: '#100F0D',
-                  borderTop: '1px solid rgba(255, 248, 235, 0.06)',
+                  padding: '0.75rem 1.25rem',
+                  borderTop: '1px solid rgba(255, 248, 235, 0.08)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '0.5rem',
+                  background: '#141310',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: '0.625rem',
-                      color: '#8A8070',
-                      letterSpacing: '0.12em',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    ← → navigate · ESC or drag down to close
-                  </span>
-                </div>
-
-                {/* Thumbnails Row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {screenshots.map((s, i) => (
-                    <button
-                      key={s.id}
-                      onClick={() => openViewer(i)}
-                      style={{
-                        padding: '3px 7px',
-                        borderRadius: '2px',
-                        background: activeIdx === i ? 'rgba(200, 130, 10, 0.2)' : 'transparent',
-                        border: `1px solid ${activeIdx === i ? AMBER_LIGHT : 'rgba(255, 248, 235, 0.08)'}`,
-                        color: activeIdx === i ? '#F5EFE0' : '#8A8070',
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: '0.5625rem',
-                        cursor: 'pointer',
-                        letterSpacing: '0.06em',
-                        transition: 'all 180ms ease',
-                      }}
-                    >
-                      {s.tag}
-                    </button>
-                  ))}
-                </div>
+                <p
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.75rem',
+                    color: '#8A8070',
+                    margin: 0,
+                  }}
+                >
+                  {churnScreenshots[activeIdx].subtitle}
+                </p>
+                <span
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: '0.625rem',
+                    color: '#5A5248',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  ESC TO CLOSE · ← / → ARROWS
+                </span>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Dedicated Floating Project Assistant ── */}
+      <ChurnAssistant isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </section>
   );
 }

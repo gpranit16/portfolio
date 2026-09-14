@@ -6,6 +6,7 @@ import WhoIAm from './components/ui/who-i-am';
 import TechStack from './components/ui/tech-stack';
 import TarkAiShowcase from './components/ui/tark-ai-showcase';
 import SyncoraShowcase from './components/ui/syncora-showcase';
+import ChurnReaperShowcase from './components/ui/churn-reaper-showcase';
 import ProjectAssistantModal from './components/ui/project-assistant-modal';
 
 const AMBER = '#D4960F';
@@ -167,13 +168,66 @@ export default function App() {
 
         <div className="divider" />
 
-        {/* ── 03 / FEATURED WORK — TARK AI ── */}
+        {/* ── 01 / FEATURED WORK — TARK AI ── */}
         <TarkAiShowcase />
 
-        <div className="divider" />
+        {/* Project Transition 1 -> 2 */}
+        <div style={{ position: 'relative', width: '100%', padding: '0.75rem 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0E0D0B' }}>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
+            <div style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, transparent 0%, rgba(200, 130, 10, 0.06) 20%, rgba(200, 130, 10, 0.22) 50%, rgba(200, 130, 10, 0.06) 80%, transparent 100%)' }} />
+          </div>
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 2,
+              background: '#141310',
+              border: '1px solid rgba(255, 248, 235, 0.09)',
+              borderRadius: '20px',
+              padding: '0.35rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.55rem',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.6)',
+            }}
+          >
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: AMBER, boxShadow: '0 0 6px rgba(200, 130, 10, 0.6)' }} />
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.6rem', color: '#C8BFA8', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 500 }}>
+              NEXT PROJECT · 02 / 03 SYNCORA
+            </span>
+          </div>
+        </div>
 
-        {/* ── 04 / PROJECT WORK — SYNCORA ── */}
+        {/* ── 02 / PROJECT WORK — SYNCORA ── */}
         <SyncoraShowcase />
+
+        {/* Project Transition 2 -> 3 */}
+        <div style={{ position: 'relative', width: '100%', padding: '0.75rem 0', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0E0D0B' }}>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
+            <div style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, transparent 0%, rgba(200, 130, 10, 0.06) 20%, rgba(200, 130, 10, 0.22) 50%, rgba(200, 130, 10, 0.06) 80%, transparent 100%)' }} />
+          </div>
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 2,
+              background: '#141310',
+              border: '1px solid rgba(255, 248, 235, 0.09)',
+              borderRadius: '20px',
+              padding: '0.35rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.55rem',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.6)',
+            }}
+          >
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: AMBER, boxShadow: '0 0 6px rgba(200, 130, 10, 0.6)' }} />
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.6rem', color: '#C8BFA8', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 500 }}>
+              NEXT PROJECT · 03 / 03 CHURN REAPER
+            </span>
+          </div>
+        </div>
+
+        {/* ── 03 / APPLIED AI & ML — CHURN REAPER ── */}
+        <ChurnReaperShowcase />
 
         <div className="divider" />
 

@@ -3,6 +3,8 @@ import cors from 'cors';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import { retrieveRelevantChunks, buildSystemPrompt, loadKnowledgeBase } from './server/tarkRagService.js';
+import { retrieveSyncoraChunks, buildSyncoraSystemPrompt, loadSyncoraKnowledge } from './server/syncoraRagService.js';
+import { retrieveChurnChunks, buildChurnSystemPrompt, loadChurnKnowledge } from './server/churnRagService.js';
 
 dotenv.config();
 
@@ -209,7 +211,305 @@ app.post('/api/tark-assistant/chat', async (req, res) => {
 app.post('/api/tark-assistant/reindex', async (req, res) => {
   try {
     loadKnowledgeBase();
-    res.json({ message: 'Knowledge index reloaded successfully' });
+    res.json({ message: 'TARK Knowledge index reloaded successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── SYNCORA Project Knowledge Assistant (RAG Chat with Streaming) ──
+app.post('/api/syncora-assistant/chat', async (req, res) => {
+  const { question, history = [] } = req.body;
+
+  if (!question || typeof question !== 'string' || question.trim().length === 0) {
+    return res.status(400).json({ error: 'A question is required.' });
+  }
+
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'Server configuration error: GROQ_API_KEY not found.' });
+  }
+
+  // 1. Retrieve relevant Syncora context
+  const { chunks, sources } = retrieveSyncoraChunks(question, 5);
+  const systemPrompt = buildSyncoraSystemPrompt(chunks);
+
+  // Set SSE Headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // Send retrieved sources metadata
+  res.write(`data: ${JSON.stringify({ type: 'sources', sources })}\n\n`);
+
+  // Build message history
+  const cleanHistory = (Array.isArray(history) ? history : [])
+    .slice(-4)
+    .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+    .map(m => ({ role: m.role, content: m.content }));
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...cleanHistory,
+    { role: 'user', content: question.trim() }
+  ];
+
+  const candidateModels = [
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
+    'qwen/qwen3.6-27b',
+    'qwen/qwen3.8-27b',
+    process.env.GROQ_MODEL,
+  ].filter(Boolean);
+
+  let groqResponse = null;
+
+  for (const model of candidateModels) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: 0.3,
+          max_tokens: 800,
+          stream: true,
+        }),
+      });
+
+      if (response.ok) {
+        groqResponse = response;
+        break;
+      } else {
+        const err = await response.text();
+        console.warn(`[Syncora Assistant] Model ${model} failed (${response.status}):`, err);
+      }
+    } catch (e) {
+      console.warn(`[Syncora Assistant] Error attempting model ${model}:`, e.message);
+    }
+  }
+
+  if (!groqResponse || !groqResponse.body) {
+    res.write(`data: ${JSON.stringify({ type: 'error', error: 'Syncora Assistant service currently unavailable. Please try again shortly.' })}\n\n`);
+    res.end();
+    return;
+  }
+
+  try {
+    const reader = groqResponse.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let inThinkTag = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data: ')) {
+          const payload = trimmed.slice(6).trim();
+          if (payload === '[DONE]') continue;
+
+          try {
+            const parsed = JSON.parse(payload);
+            let delta = parsed.choices?.[0]?.delta?.content || '';
+
+            // Strip out <think> tags if model includes them
+            if (delta.includes('<think>')) {
+              inThinkTag = true;
+              delta = delta.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/<think>[\s\S]*/g, '');
+            } else if (inThinkTag) {
+              if (delta.includes('</think>')) {
+                inThinkTag = false;
+                delta = delta.split('</think>')[1] || '';
+              } else {
+                delta = '';
+              }
+            }
+
+            if (delta) {
+              res.write(`data: ${JSON.stringify({ type: 'delta', delta })}\n\n`);
+            }
+          } catch {
+            // Ignore parse errors on partial chunks
+          }
+        }
+      }
+    }
+
+    res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+    res.end();
+  } catch (error) {
+    console.error('[Syncora Assistant] Streaming Error:', error);
+    res.write(`data: ${JSON.stringify({ type: 'error', error: error.message || 'Stream disrupted' })}\n\n`);
+    res.end();
+  }
+});
+
+// ── Refresh Syncora Knowledge Index ──
+app.post('/api/syncora-assistant/reindex', async (req, res) => {
+  try {
+    loadSyncoraKnowledge();
+    res.json({ message: 'Syncora Knowledge index reloaded successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── CHURN REAPER Project Knowledge Assistant (RAG Chat with Streaming) ──
+app.post('/api/churn-assistant/chat', async (req, res) => {
+  const { question, history = [] } = req.body;
+
+  if (!question || typeof question !== 'string' || question.trim().length === 0) {
+    return res.status(400).json({ error: 'A question is required.' });
+  }
+
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'Server configuration error: GROQ_API_KEY not found.' });
+  }
+
+  // 1. Retrieve relevant Churn Reaper context
+  const { chunks, sources } = retrieveChurnChunks(question, 5);
+  const systemPrompt = buildChurnSystemPrompt(chunks);
+
+  // Set SSE Headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // Send retrieved sources metadata
+  res.write(`data: ${JSON.stringify({ type: 'sources', sources })}\n\n`);
+
+  // Build message history
+  const cleanHistory = (Array.isArray(history) ? history : [])
+    .slice(-4)
+    .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+    .map(m => ({ role: m.role, content: m.content }));
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...cleanHistory,
+    { role: 'user', content: question.trim() }
+  ];
+
+  const candidateModels = [
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
+    'qwen/qwen3.6-27b',
+    'qwen/qwen3.8-27b',
+    process.env.GROQ_MODEL,
+  ].filter(Boolean);
+
+  let groqResponse = null;
+
+  for (const model of candidateModels) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: 0.25,
+          max_tokens: 850,
+          stream: true,
+        }),
+      });
+
+      if (response.ok) {
+        groqResponse = response;
+        break;
+      } else {
+        const err = await response.text();
+        console.warn(`[Churn Assistant] Model ${model} failed (${response.status}):`, err);
+      }
+    } catch (e) {
+      console.warn(`[Churn Assistant] Error attempting model ${model}:`, e.message);
+    }
+  }
+
+  if (!groqResponse || !groqResponse.body) {
+    res.write(`data: ${JSON.stringify({ type: 'error', error: 'Churn Reaper Assistant service currently unavailable. Please try again shortly.' })}\n\n`);
+    res.end();
+    return;
+  }
+
+  try {
+    const reader = groqResponse.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let inThinkTag = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data: ')) {
+          const payload = trimmed.slice(6).trim();
+          if (payload === '[DONE]') continue;
+
+          try {
+            const parsed = JSON.parse(payload);
+            let delta = parsed.choices?.[0]?.delta?.content || '';
+
+            // Strip out <think> tags if model includes them
+            if (delta.includes('<think>')) {
+              inThinkTag = true;
+              delta = delta.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/<think>[\s\S]*/g, '');
+            } else if (inThinkTag) {
+              if (delta.includes('</think>')) {
+                inThinkTag = false;
+                delta = delta.split('</think>')[1] || '';
+              } else {
+                delta = '';
+              }
+            }
+
+            if (delta) {
+              res.write(`data: ${JSON.stringify({ type: 'delta', delta })}\n\n`);
+            }
+          } catch {
+            // Ignore parse errors on partial chunks
+          }
+        }
+      }
+    }
+
+    res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+    res.end();
+  } catch (error) {
+    console.error('[Churn Assistant] Streaming Error:', error);
+    res.write(`data: ${JSON.stringify({ type: 'error', error: error.message || 'Stream disrupted' })}\n\n`);
+    res.end();
+  }
+});
+
+// ── Refresh Churn Knowledge Index ──
+app.post('/api/churn-assistant/reindex', async (req, res) => {
+  try {
+    loadChurnKnowledge();
+    res.json({ message: 'Churn Reaper Knowledge index reloaded successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -218,7 +518,7 @@ app.post('/api/tark-assistant/reindex', async (req, res) => {
 const PORT = process.env.PORT || 3001;
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   app.listen(PORT, () => {
-    console.log(`Portfolio & TARK Assistant server running on port ${PORT}`);
+    console.log(`Portfolio Server running on port ${PORT}`);
   });
 }
 
