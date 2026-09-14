@@ -142,11 +142,11 @@ app.post('/api/tark-assistant/chat', async (req, res) => {
   ];
 
   const candidateModels = [
-    'openai/gpt-oss-120b',
-    'openai/gpt-oss-20b',
-    'qwen/qwen3.6-27b',
-    'qwen/qwen3.8-27b',
     process.env.GROQ_MODEL,
+    'qwen/qwen3.6-27b',
+    'openai/gpt-oss-20b',
+    'qwen/qwen3.8-27b',
+    'openai/gpt-oss-120b',
   ].filter(Boolean);
 
   let groqResponse = null;
@@ -308,11 +308,11 @@ app.post('/api/syncora-assistant/chat', async (req, res) => {
   ];
 
   const candidateModels = [
-    'openai/gpt-oss-120b',
-    'openai/gpt-oss-20b',
-    'qwen/qwen3.6-27b',
-    'qwen/qwen3.8-27b',
     process.env.GROQ_MODEL,
+    'qwen/qwen3.6-27b',
+    'openai/gpt-oss-20b',
+    'qwen/qwen3.8-27b',
+    'openai/gpt-oss-120b',
   ].filter(Boolean);
 
   let groqResponse = null;
@@ -471,11 +471,11 @@ app.post('/api/churn-assistant/chat', async (req, res) => {
   ];
 
   const candidateModels = [
-    'openai/gpt-oss-120b',
-    'openai/gpt-oss-20b',
-    'qwen/qwen3.6-27b',
-    'qwen/qwen3.8-27b',
     process.env.GROQ_MODEL,
+    'qwen/qwen3.6-27b',
+    'openai/gpt-oss-20b',
+    'qwen/qwen3.8-27b',
+    'openai/gpt-oss-120b',
   ].filter(Boolean);
 
   let groqResponse = null;
@@ -590,28 +590,23 @@ app.post('/api/pranit-assistant/chat', async (req, res) => {
     return res.status(400).json({ error: 'A question is required.' });
   }
   const question = queryText.trim();
+  console.log(`[ASK PRANIT] Request received: "${question}"`);
 
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'Server configuration error: GROQ_API_KEY not found.' });
   }
 
-  // 0. Strict Domain Boundary Guardrail
-  const scopeCheck = checkDomainScope('pranit', question);
-  if (!scopeCheck.inScope) {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.write(`data: ${JSON.stringify({ type: 'sources', sources: [] })}\n\n`);
-    res.write(`data: ${JSON.stringify({ type: 'delta', delta: scopeCheck.refusal })}\n\n`);
-    res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
-    res.end();
-    return;
-  }
+  // 1. Build clean message history (up to last 8 turns for contextual follow-up awareness)
+  const cleanHistory = (Array.isArray(history) ? history : [])
+    .slice(-8)
+    .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+    .map(m => ({ role: m.role, content: m.content }));
 
-  // 1. Retrieve relevant global portfolio context
-  const { chunks, sources } = retrieveGlobalPranitChunks(question, 4);
+  // 2. Context-aware RAG Retrieval incorporating query + history
+  const { chunks, sources } = retrieveGlobalPranitChunks(question, cleanHistory, 4);
+  console.log(`[ASK PRANIT] Retrieved ${chunks.length} chunks:`, chunks.map(c => c.title));
+
   const systemPrompt = buildGlobalPranitSystemPrompt(chunks);
 
   // Set SSE Headers
@@ -623,30 +618,26 @@ app.post('/api/pranit-assistant/chat', async (req, res) => {
   // Send retrieved sources metadata
   res.write(`data: ${JSON.stringify({ type: 'sources', sources })}\n\n`);
 
-  // Build clean message history (last 6 turns for conversational context continuity)
-  const cleanHistory = (Array.isArray(history) ? history : [])
-    .slice(-6)
-    .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
-    .map(m => ({ role: m.role, content: m.content }));
-
   const messages = [
     { role: 'system', content: systemPrompt },
     ...cleanHistory,
-    { role: 'user', content: question.trim() }
+    { role: 'user', content: question }
   ];
 
   const candidateModels = [
-    'openai/gpt-oss-120b',
-    'openai/gpt-oss-20b',
-    'qwen/qwen3.6-27b',
-    'qwen/qwen3.8-27b',
     process.env.GROQ_MODEL,
+    'qwen/qwen3.6-27b',
+    'openai/gpt-oss-20b',
+    'qwen/qwen3.8-27b',
+    'openai/gpt-oss-120b',
   ].filter(Boolean);
 
   let groqResponse = null;
+  let usedModel = '';
 
   for (const model of candidateModels) {
     try {
+      console.log(`[ASK PRANIT] Attempting model call: ${model}`);
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -657,24 +648,27 @@ app.post('/api/pranit-assistant/chat', async (req, res) => {
           model,
           messages,
           temperature: 0.35,
-          max_tokens: 850,
+          max_tokens: 750,
           stream: true,
         }),
       });
 
       if (response.ok) {
         groqResponse = response;
+        usedModel = model;
+        console.log(`[ASK PRANIT] Model connection established: ${model}`);
         break;
       } else {
         const err = await response.text();
-        console.warn(`[Pranit Assistant] Model ${model} failed (${response.status}):`, err);
+        console.warn(`[ASK PRANIT] Model ${model} returned ${response.status}:`, err);
       }
     } catch (e) {
-      console.warn(`[Pranit Assistant] Error attempting model ${model}:`, e.message);
+      console.warn(`[ASK PRANIT] Error attempting model ${model}:`, e.message);
     }
   }
 
   if (!groqResponse || !groqResponse.body) {
+    console.error('[ASK PRANIT] All candidate models failed to respond.');
     res.write(`data: ${JSON.stringify({ type: 'error', error: 'ASK PRANIT AI service currently unavailable. Please try again shortly.' })}\n\n`);
     res.end();
     return;
@@ -685,6 +679,7 @@ app.post('/api/pranit-assistant/chat', async (req, res) => {
     const decoder = new TextDecoder();
     let buffer = '';
     let inThinkTag = false;
+    let firstTokenLogged = false;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -718,19 +713,24 @@ app.post('/api/pranit-assistant/chat', async (req, res) => {
             }
 
             if (delta) {
+              if (!firstTokenLogged) {
+                console.log('[ASK PRANIT] First token received');
+                firstTokenLogged = true;
+              }
               res.write(`data: ${JSON.stringify({ type: 'delta', delta })}\n\n`);
             }
           } catch {
-            // Ignore parse errors on partial chunks
+            // Ignore partial JSON parse chunks
           }
         }
       }
     }
 
+    console.log('[ASK PRANIT] Stream completed successfully');
     res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
     res.end();
   } catch (error) {
-    console.error('[Pranit Assistant] Streaming Error:', error);
+    console.error('[ASK PRANIT] Streaming Error:', error);
     res.write(`data: ${JSON.stringify({ type: 'error', error: error.message || 'Stream disrupted' })}\n\n`);
     res.end();
   }
