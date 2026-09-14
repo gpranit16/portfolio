@@ -5,6 +5,7 @@ import ScrollExpandHero from './components/ui/scroll-expansion-hero';
 import WhoIAm from './components/ui/who-i-am';
 import TechStack from './components/ui/tech-stack';
 import TarkAiShowcase from './components/ui/tark-ai-showcase';
+import SyncoraShowcase from './components/ui/syncora-showcase';
 import ProjectAssistantModal from './components/ui/project-assistant-modal';
 
 const AMBER = '#D4960F';
@@ -168,6 +169,11 @@ export default function App() {
 
         {/* ── 03 / FEATURED WORK — TARK AI ── */}
         <TarkAiShowcase />
+
+        <div className="divider" />
+
+        {/* ── 04 / PROJECT WORK — SYNCORA ── */}
+        <SyncoraShowcase />
 
         <div className="divider" />
 

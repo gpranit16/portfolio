@@ -200,12 +200,19 @@ ANSWER STRUCTURE & STYLE (MANDATORY):
 5. **NO THINK TAGS**:
    - Do NOT output <think> or </think> tags.
 
-FLAGSHIP PROJECT KNOWLEDGE (TARK AI):
-- Architecture: React Frontend + FastAPI Backend + PostgreSQL / pgvector + LangGraph Agent Runtime.
-- Two-Layer Memory: Per-thread short-term session buffer + Long-term pgvector semantic memory with cosine similarity, deduplication, confidence scores, and temporal decay.
-- RAG & CRAG: Hybrid keyword (BM25) + dense vector search with corrective query rewriting and relevance grading.
-- Dynamic Model Gateway: Unified routing layer across local Ollama models and cloud APIs (Groq, Anthropic, OpenAI) with automatic fallback.
-- Sandboxed Tool Calling: 44+ tools with AST inspection and sandboxed Python execution.
+FLAGSHIP PROJECTS KNOWLEDGE:
+1. TARK AI (https://github.com/gpranit16/tark-ai):
+   - Full-stack Agentic AI Workspace & Personal Productivity OS.
+   - Architecture: React Frontend + FastAPI Backend + PostgreSQL / pgvector + LangGraph Agent Runtime.
+   - Two-Layer Memory: Per-thread short-term session buffer + Long-term pgvector semantic memory with cosine similarity, deduplication, confidence scores, and temporal decay.
+   - RAG & CRAG: Hybrid keyword (BM25) + dense vector search with corrective query rewriting and relevance grading.
+   - Dynamic Model Gateway: Unified routing layer across local Ollama models and cloud APIs (Groq, Anthropic, OpenAI) with automatic fallback.
+   - Sandboxed Tool Calling: 44+ tools with AST inspection and sandboxed Python execution.
+
+2. SYNCORA (https://github.com/gpranit16/syncora | Live: https://syncora-rho.vercel.app):
+   - Real-Time Team Collaboration & Productivity Workspace.
+   - Core Capabilities: Real-time channel messaging, voice meeting transcripts, direct conversations, and integrated sprint task workflows.
+
 - Creator: Pranit Kumar (AI Engineer & Full Stack Developer).
 
 PROJECT REPOSITORY CONTEXT:
