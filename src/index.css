@@ -183,45 +183,124 @@ body::before {
 }
 
 /* ── Assistant Markdown Styles ── */
-.assistant-markdown-content p {
+.assistant-markdown-content p,
+.tark-markdown-renderer p {
   margin-bottom: 0.65rem;
 }
-.assistant-markdown-content p:last-child {
+.assistant-markdown-content p:last-child,
+.tark-markdown-renderer p:last-child {
   margin-bottom: 0;
 }
-.assistant-markdown-content ul, .assistant-markdown-content ol {
+.assistant-markdown-content ul,
+.assistant-markdown-content ol,
+.tark-markdown-renderer ul,
+.tark-markdown-renderer ol {
   margin: 0.4rem 0 0.65rem 1.25rem;
 }
-.assistant-markdown-content li {
-  margin-bottom: 0.25rem;
+.assistant-markdown-content li,
+.tark-markdown-renderer li {
+  margin-bottom: 0.28rem;
+  line-height: 1.6;
 }
-.assistant-markdown-content strong {
+.assistant-markdown-content strong,
+.tark-markdown-renderer strong {
   color: #F5EFE0;
   font-weight: 600;
 }
-.assistant-markdown-content em {
+.assistant-markdown-content em,
+.tark-markdown-renderer em {
   color: #D4960F;
   font-style: normal;
 }
-.assistant-markdown-content code {
+
+/* Headings in TARK markdown */
+.tark-markdown-renderer h1,
+.tark-markdown-renderer h2,
+.tark-markdown-renderer h3,
+.tark-markdown-renderer h4 {
+  font-family: 'JetBrains Mono', monospace;
+  color: #F5EFE0;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 0.85rem 0 0.45rem 0;
+  line-height: 1.35;
+}
+.tark-markdown-renderer h1:first-child,
+.tark-markdown-renderer h2:first-child,
+.tark-markdown-renderer h3:first-child {
+  margin-top: 0;
+}
+.tark-markdown-renderer h1 { font-size: 0.95rem; }
+.tark-markdown-renderer h2 { font-size: 0.9rem; }
+.tark-markdown-renderer h3 { font-size: 0.825rem; color: #D4960F; }
+.tark-markdown-renderer h4 { font-size: 0.775rem; color: #C8BFA8; }
+
+/* Inline Code */
+.assistant-markdown-content code,
+.tark-markdown-renderer code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  background: rgba(200, 130, 10, 0.12);
-  border: 1px solid rgba(200, 130, 10, 0.25);
+  background: rgba(200, 130, 10, 0.1);
+  border: 1px solid rgba(200, 130, 10, 0.22);
   color: #F5EFE0;
-  padding: 1px 4px;
+  padding: 1px 5px;
   border-radius: 3px;
 }
-.assistant-markdown-content pre {
+
+/* Fenced Code Blocks */
+.assistant-markdown-content pre,
+.tark-markdown-renderer pre {
   background: #0B0A08;
   border: 1px solid rgba(255, 248, 235, 0.08);
   border-radius: 4px;
-  padding: 0.65rem 0.85rem;
-  margin: 0.5rem 0;
+  padding: 0.75rem 0.95rem;
+  margin: 0.65rem 0;
   overflow-x: auto;
 }
-.assistant-markdown-content pre code {
+.assistant-markdown-content pre code,
+.tark-markdown-renderer pre code {
   background: transparent;
   border: none;
   padding: 0;
+  font-size: 0.75rem;
+  color: #D6CEBE;
+  line-height: 1.55;
+}
+
+/* Tables in Markdown */
+.tark-markdown-renderer table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.78rem;
+  background: #0B0A08;
+  border: 1px solid rgba(255, 248, 235, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.tark-markdown-renderer th {
+  background: #161410;
+  color: #D4960F;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.45rem 0.65rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 248, 235, 0.08);
+}
+.tark-markdown-renderer td {
+  padding: 0.45rem 0.65rem;
+  border-bottom: 1px solid rgba(255, 248, 235, 0.04);
+  color: #C8BFA8;
+  line-height: 1.5;
+}
+.tark-markdown-renderer tr:last-child td {
+  border-bottom: none;
+}
+.tark-markdown-renderer a {
+  color: #D4960F;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

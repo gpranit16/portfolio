@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X, Layers, Maximize2, Bot } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Layers, Maximize2, Terminal } from 'lucide-react';
 import { SiGithub } from 'react-icons/si';
+import TarkAssistant from './tark-assistant';
 
 const AMBER = '#C8820A';
 const AMBER_LIGHT = '#D4960F';
@@ -64,6 +65,7 @@ export default function TarkAiShowcase() {
   const [isHovered, setIsHovered] = useState(false);
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [direction, setDirection] = useState<number>(0);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const prevImage = useCallback(() => {
     setDirection(-1);
@@ -686,34 +688,35 @@ export default function TarkAiShowcase() {
           </motion.div>
         </div>
 
-        {/* ── Interactive Project Intelligence Launcher ── */}
+        {/* ── TARK AI Project Intelligence CTA Strip ── */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.15 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
           style={{
-            marginTop: '4rem',
-            background: 'linear-gradient(135deg, rgba(20, 19, 16, 0.95) 0%, rgba(16, 15, 12, 0.95) 100%)',
-            border: '1px solid rgba(200, 130, 10, 0.25)',
-            borderRadius: '8px',
-            padding: '1.75rem 2rem',
+            marginTop: '3.5rem',
+            background: 'linear-gradient(180deg, #151410 0%, #11100E 100%)',
+            border: '1px solid rgba(255, 248, 235, 0.08)',
+            borderLeft: `2px solid ${AMBER}`,
+            borderRadius: '4px',
+            padding: '1rem 1.35rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '1.5rem',
-            boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 0 20px rgba(200, 130, 10, 0.05)',
+            gap: '1rem',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', maxWidth: '680px' }}>
+          {/* Left info */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div
               style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '8px',
-                background: 'rgba(200, 130, 10, 0.12)',
-                border: '1px solid rgba(200, 130, 10, 0.3)',
+                width: '28px',
+                height: '28px',
+                borderRadius: '3px',
+                background: 'rgba(200, 130, 10, 0.08)',
+                border: '1px solid rgba(200, 130, 10, 0.22)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -721,87 +724,79 @@ export default function TarkAiShowcase() {
                 flexShrink: 0,
               }}
             >
-              <Bot size={22} />
+              <Terminal size={14} />
             </div>
+
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h3
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    color: '#F5EFE0',
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase',
-                    margin: 0,
-                  }}
-                >
-                  CURIOUS ABOUT TARK AI ARCHITECTURE?
-                </h3>
-                <span
-                  style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: '#22C55E',
-                    boxShadow: '0 0 8px rgba(34, 197, 94, 0.8)',
-                  }}
-                />
-              </div>
+              <p
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: '0.6875rem',
+                  fontWeight: 600,
+                  color: '#F5EFE0',
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  margin: 0,
+                  lineHeight: 1.3,
+                }}
+              >
+                CURIOUS ABOUT TARK AI?
+              </p>
               <p
                 style={{
                   fontFamily: "'Inter', sans-serif",
-                  fontSize: '0.875rem',
-                  color: '#AFA594',
-                  margin: '0.35rem 0 0 0',
-                  lineHeight: 1.5,
+                  fontSize: '0.8125rem',
+                  color: '#8A8070',
+                  margin: '2px 0 0 0',
+                  lineHeight: 1.4,
                 }}
               >
-                Ask our interactive project AI assistant about the RAG pipeline, two-layer memory with pgvector, dynamic model routing, or agent sandboxing.
+                Ask about its architecture, RAG pipeline, memory, models, tools and implementation.
               </p>
             </div>
           </div>
 
+          {/* Right CTA Button */}
           <button
-            onClick={() => {
-              window.dispatchEvent(
-                new CustomEvent('open-project-assistant', {
-                  detail: { query: 'What is TARK AI and how does its architecture work?' }
-                })
-              );
-            }}
+            onClick={() => setIsChatOpen(true)}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.6rem',
-              padding: '0.75rem 1.4rem',
-              background: 'linear-gradient(135deg, rgba(200, 130, 10, 0.2) 0%, rgba(200, 130, 10, 0.08) 100%)',
-              border: '1px solid rgba(200, 130, 10, 0.4)',
+              gap: '0.4rem',
+              padding: '0.55rem 1.15rem',
+              background: '#1A1813',
+              border: `1px solid rgba(200, 130, 10, 0.35)`,
               color: '#F5EFE0',
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '0.825rem',
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '0.6875rem',
               fontWeight: 600,
-              letterSpacing: '0.04em',
-              borderRadius: '4px',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              borderRadius: '3px',
               cursor: 'pointer',
-              transition: 'all 200ms ease',
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
+              transition: 'all 180ms ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(200, 130, 10, 0.3)';
+              e.currentTarget.style.background = 'rgba(200, 130, 10, 0.15)';
               e.currentTarget.style.borderColor = AMBER_LIGHT;
               e.currentTarget.style.transform = 'translateY(-1px)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(200, 130, 10, 0.2) 0%, rgba(200, 130, 10, 0.08) 100%)';
-              e.currentTarget.style.borderColor = 'rgba(200, 130, 10, 0.4)';
+              e.currentTarget.style.background = '#1A1813';
+              e.currentTarget.style.borderColor = 'rgba(200, 130, 10, 0.35)';
               e.currentTarget.style.transform = 'none';
             }}
           >
-            <Bot size={15} color={AMBER_LIGHT} />
-            <span>Ask Project AI ↗</span>
+            <span>ASK TARK</span>
+            <span style={{ color: AMBER_LIGHT }}>↗</span>
           </button>
         </motion.div>
+
+        {/* ── TARK Dedicated Movable Floating Assistant ── */}
+        <TarkAssistant
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+        />
 
       </div>
 
