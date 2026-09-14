@@ -52,7 +52,7 @@ const milestones: Milestone[] = [
       'Worked across full-stack development workflows during a focused internship, contributing to project implementation, learning and delivery.',
     tags: ['Full-Stack', 'Component Architecture', 'Delivery'],
     actionText: 'VIEW CERTIFICATE ↗',
-    actionUrl: '#',
+    actionUrl: 'https://drive.google.com/file/d/1MJuRGNHNQLjjpQ9AkhTeTl3RlBvZgKb6/view?usp=sharing',
     actionType: 'certificate',
   },
   {
@@ -67,7 +67,7 @@ const milestones: Milestone[] = [
       'Contributed to assigned full-stack development work, building and improving application features while working across frontend and backend workflows.',
     tags: ['Application Features', 'Frontend & Backend', 'Workflows'],
     actionText: 'VIEW CERTIFICATE ↗',
-    actionUrl: '#',
+    actionUrl: 'https://drive.google.com/file/d/193ISjwIzy7bkkUmtbc-QTjghxW0ASUvi/view?usp=sharing',
     actionType: 'certificate',
   },
 ];
@@ -672,8 +672,9 @@ export default function ExperienceStaircase() {
 
                 <div style={{ paddingTop: '0.35rem', borderTop: '1px solid rgba(255, 248, 235, 0.06)' }}>
                   <a
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
+                    href={milestones[1].actionUrl}
+                    target="_blank"
+                    rel="noreferrer"
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -840,8 +841,9 @@ export default function ExperienceStaircase() {
 
                 <div style={{ paddingTop: '0.35rem', borderTop: '1px solid rgba(255, 248, 235, 0.06)' }}>
                   <a
-                    href="#"
-                    onClick={(e) => e.preventDefault()}
+                    href={milestones[2].actionUrl}
+                    target="_blank"
+                    rel="noreferrer"
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -1035,9 +1037,8 @@ export default function ExperienceStaircase() {
                     <div style={{ paddingTop: '0.35rem', borderTop: '1px solid rgba(255, 248, 235, 0.06)' }}>
                       <a
                         href={m.actionUrl}
-                        target={m.actionType === 'website' ? '_blank' : undefined}
-                        rel={m.actionType === 'website' ? 'noreferrer' : undefined}
-                        onClick={m.actionType === 'certificate' ? (e) => e.preventDefault() : undefined}
+                        target="_blank"
+                        rel="noreferrer"
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',

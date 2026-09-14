@@ -105,7 +105,7 @@ const ContactForm = () => {
             onFocus={e => (e.target.style.borderColor = 'rgba(200, 130, 10, 0.4)')}
             onBlur={e => (e.target.style.borderColor = 'rgba(255, 248, 235, 0.1)')} />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+        <div>
           <button type="submit" disabled={status === 'loading'}
             style={{
               background: status === 'success' ? '#27241D' : AMBER,
@@ -135,50 +135,8 @@ const ContactForm = () => {
               }
             }}
           >
-            {status === 'loading' ? 'Sending...' : status === 'success' ? '✓ Message Sent' : 'Send Message →'}
+            {status === 'loading' ? 'Sending...' : status === 'success' ? '✓ Message Sent' : status === 'error' ? 'Error — Try Again' : 'Send Message →'}
           </button>
-
-          {status === 'success' && (
-            <motion.div
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.55rem',
-                background: 'rgba(200, 130, 10, 0.08)',
-                border: '1px solid rgba(200, 130, 10, 0.25)',
-                padding: '0.55rem 1rem',
-                borderRadius: '3px',
-              }}
-            >
-              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: AMBER, boxShadow: '0 0 6px rgba(200, 130, 10, 0.8)' }} />
-              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.78rem', color: '#F5EFE0', fontWeight: 500 }}>
-                Confirmation sent to your email inbox.
-              </span>
-            </motion.div>
-          )}
-
-          {status === 'error' && (
-            <motion.div
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.55rem',
-                background: 'rgba(220, 80, 80, 0.08)',
-                border: '1px solid rgba(220, 80, 80, 0.25)',
-                padding: '0.55rem 1rem',
-                borderRadius: '3px',
-              }}
-            >
-              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#c46a6a' }} />
-              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.78rem', color: '#F5EFE0', fontWeight: 500 }}>
-                Unable to send message. Please try again.
-              </span>
-            </motion.div>
-          )}
         </div>
       </form>
     </div>
