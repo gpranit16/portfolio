@@ -166,6 +166,7 @@ export default function App() {
         <div className="divider" />
 
         {/* ── 01 / FEATURED WORK — TARK AI ── */}
+        <div id="work" style={{ scrollMarginTop: '80px' }} />
         <TarkAiShowcase />
 
         {/* Project Transition 1 -> 2 */}
@@ -236,7 +237,7 @@ export default function App() {
         <div className="divider" />
 
         {/* ── Achievements ── */}
-        <section className="section" style={{ background: '#000000' }}>
+        <section id="achievements" className="section" style={{ background: '#000000', scrollMarginTop: '80px' }}>
           <div className="section-inner">
             <Reveal><p className="eyebrow">Recognition</p></Reveal>
             <Reveal delay={0.05}><h2 className="section-title" style={{ marginBottom: '3.5rem' }}>Achievements</h2></Reveal>

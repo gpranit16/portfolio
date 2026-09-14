@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { motion, useSpring, AnimatePresence } from 'framer-motion';
+import { Menu, X } from 'lucide-react';
 
 const SENS = 0.0025;
 const AMBER = '#D4960F';
@@ -44,6 +45,36 @@ export default function ScrollExpandHero({
   const spring = useSpring(0, { stiffness: 55, damping: 22, mass: 0.9 });
   const [progress, setProgress] = useState(0);
   const [expanded, setExpanded] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleNavClick = useCallback((href: string) => {
+    setMobileMenuOpen(false);
+    if (href === '#' || href === '') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (lockedRef.current) {
+      lockedRef.current = false;
+      setExpanded(true);
+      pRef.current = 1;
+      spring.set(1);
+      document.body.style.overflow = '';
+    }
+
+    const id = href.replace('#', '');
+    setTimeout(() => {
+      const element = document.getElementById(id);
+      if (element) {
+        const navHeight = 70;
+        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({
+          top: Math.max(0, elementPosition - navHeight),
+          behavior: 'smooth',
+        });
+      }
+    }, 60);
+  }, [spring]);
 
   useEffect(() => {
     return spring.on('change', (v) => {
@@ -251,6 +282,10 @@ export default function ScrollExpandHero({
         {/* Wordmark */}
         <a
           href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            handleNavClick('#');
+          }}
           style={{
             fontFamily: "'Playfair Display', serif",
             fontSize: '1.35rem',
@@ -266,23 +301,29 @@ export default function ScrollExpandHero({
         </a>
 
         {/* Center navigation links */}
-        <div className="hidden md:flex" style={{ gap: '2.5rem', alignItems: 'center' }}>
+        <div className="hidden lg:flex" style={{ gap: '2rem', alignItems: 'center' }}>
           {[
-            { label: 'WORK', href: '#work' },
             { label: 'ABOUT', href: '#about' },
             { label: 'TECH STACK', href: '#tech-stack' },
+            { label: 'WORK', href: '#work' },
+            { label: 'EXPERIENCE', href: '#experience' },
+            { label: 'ACHIEVEMENTS', href: '#achievements' },
             { label: 'CONTACT', href: '#contact' },
           ].map((item) => (
             <a
               key={item.label}
               href={item.href}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavClick(item.href);
+              }}
               style={{
                 fontFamily: "'Inter', sans-serif",
                 fontSize: '0.72rem',
                 fontWeight: 500,
                 color: 'rgba(245, 239, 224, 0.55)',
                 textTransform: 'uppercase',
-                letterSpacing: '0.18em',
+                letterSpacing: '0.14em',
                 textDecoration: 'none',
                 transition: 'color 200ms ease',
               }}
@@ -294,8 +335,8 @@ export default function ScrollExpandHero({
           ))}
         </div>
 
-        {/* Right Section: Subtle Social Links + CTA + Theme icon */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+        {/* Right Section: Subtle Social Links + CTA + Mobile Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {/* Subtle Social Links */}
           <div className="hidden sm:flex items-center gap-3.5 pr-2 border-r border-[rgba(255,248,235,0.08)]">
             <a
@@ -341,6 +382,10 @@ export default function ScrollExpandHero({
           {/* Contact CTA */}
           <a
             href="#contact"
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavClick('#contact');
+            }}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -382,36 +427,102 @@ export default function ScrollExpandHero({
             </svg>
           </a>
 
-          {/* Theme toggle icon */}
+          {/* Mobile Menu Button */}
           <button
             type="button"
-            aria-label="Theme toggle"
+            className="flex lg:hidden"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-label="Toggle navigation menu"
             style={{
               background: 'none',
               border: 'none',
-              color: 'rgba(245, 239, 224, 0.4)',
+              color: '#F5EFE0',
               cursor: 'pointer',
-              display: 'flex',
+              padding: '6px',
               alignItems: 'center',
-              padding: '4px',
-              transition: 'color 200ms ease',
+              justifyContent: 'center',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#F5EFE0')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(245, 239, 224, 0.4)')}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="5" />
-              <line x1="12" y1="1" x2="12" y2="3" />
-              <line x1="12" y1="21" x2="12" y2="23" />
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-              <line x1="1" y1="12" x2="3" y2="12" />
-              <line x1="21" y1="12" x2="23" y2="12" />
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-            </svg>
+            {mobileMenuOpen ? <X size={20} color={AMBER} /> : <Menu size={20} />}
           </button>
         </div>
+
+        {/* Mobile Dropdown Drawer */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              style={{
+                position: 'absolute',
+                top: '64px',
+                left: 0,
+                right: 0,
+                background: 'rgba(14, 13, 11, 0.98)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                borderBottom: '1px solid rgba(255, 248, 235, 0.1)',
+                padding: '1.25rem 2rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                zIndex: 99,
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8)',
+              }}
+            >
+              {[
+                { label: 'ABOUT', href: '#about' },
+                { label: 'TECH STACK', href: '#tech-stack' },
+                { label: 'WORK', href: '#work' },
+                { label: 'EXPERIENCE', href: '#experience' },
+                { label: 'ACHIEVEMENTS', href: '#achievements' },
+                { label: 'CONTACT', href: '#contact' },
+              ].map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavClick(item.href);
+                  }}
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    color: 'rgba(245, 239, 224, 0.85)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.14em',
+                    textDecoration: 'none',
+                    padding: '0.35rem 0',
+                    borderBottom: '1px solid rgba(255, 248, 235, 0.05)',
+                  }}
+                >
+                  {item.label}
+                </a>
+              ))}
+              <div style={{ display: 'flex', gap: '1.25rem', paddingTop: '0.5rem', alignItems: 'center' }}>
+                <a
+                  href="https://github.com/gpranit16"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: AMBER, textDecoration: 'none', fontSize: '0.78rem', fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  GitHub ↗
+                </a>
+                <a
+                  href="https://linkedin.com/in/pranit-kumar-378342357"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: AMBER, textDecoration: 'none', fontSize: '0.78rem', fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  LinkedIn ↗
+                </a>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.nav>
 
       {/* ─── Hero 3-Zone Viewport Grid Container (34% / 38% / 28% proportions) ─── */}
@@ -526,6 +637,10 @@ export default function ScrollExpandHero({
               {/* Primary: VIEW MY WORK */}
               <a
                 href="#work"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick('#work');
+                }}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -598,6 +713,10 @@ export default function ScrollExpandHero({
             <div style={{ marginTop: '0.85rem' }}>
               <a
                 href="#contact"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick('#contact');
+                }}
                 style={{
                   fontFamily: "'JetBrains Mono', monospace",
                   fontSize: '0.7rem',
