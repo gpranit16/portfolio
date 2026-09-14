@@ -7,6 +7,7 @@ import TechStack from './components/ui/tech-stack';
 import TarkAiShowcase from './components/ui/tark-ai-showcase';
 import SyncoraShowcase from './components/ui/syncora-showcase';
 import ChurnReaperShowcase from './components/ui/churn-reaper-showcase';
+import ExperienceStaircase from './components/ui/experience-staircase';
 import ProjectAssistantModal from './components/ui/project-assistant-modal';
 
 const AMBER = '#D4960F';
@@ -23,21 +24,6 @@ const Reveal = ({ children, delay = 0, className = '' }: { children: React.React
     </motion.div>
   );
 };
-
-const experience = [
-  {
-    role: 'Webmaster', org: 'IEEE EMBS — BMSIT&M', period: 'Nov 2025 — Present',
-    desc: 'Leading and maintaining the digital presence of IEEE EMBS through production-level web experiences, technical collaboration, event systems, and intelligent digital workflows. Contributing to healthcare-focused innovation initiatives while building scalable interfaces and improving digital engagement across technical operations.',
-  },
-  {
-    role: 'Technical Lead', org: 'VOLCOM — IEEE EMBS', period: 'Oct 2025 — Jan 2026',
-    desc: 'Worked on healthcare-focused technical initiatives involving biomedical systems, IoT applications, intelligent engineering workflows, and collaborative innovation projects. Contributed to system architecture, technical coordination, and innovation-driven engineering experiences within IEEE EMBS activities.',
-  },
-  {
-    role: 'Full Stack Developer Intern', org: 'SuccessPath Classes', period: 'Jan 2026 — Feb 2026',
-    desc: 'Developed scalable full stack systems including dashboards, backend APIs, student management workflows, and database-integrated applications. Focused on improving performance, usability, and modern user experience while working across frontend and backend engineering workflows.',
-  },
-];
 
 const inputBase: React.CSSProperties = {
   width: '100%',
@@ -65,7 +51,7 @@ const labelBase: React.CSSProperties = {
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({ name: '', email: '', query: '' });
-  const [status, setStatus] = useState('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,11 +65,14 @@ const ContactForm = () => {
       if (res.ok) {
         setStatus('success');
         setFormData({ name: '', email: '', query: '' });
+        setTimeout(() => setStatus('idle'), 5000);
       } else {
         setStatus('error');
+        setTimeout(() => setStatus('idle'), 5000);
       }
     } catch {
       setStatus('error');
+      setTimeout(() => setStatus('idle'), 5000);
     }
   };
 
@@ -116,11 +105,12 @@ const ContactForm = () => {
             onFocus={e => (e.target.style.borderColor = 'rgba(200, 130, 10, 0.4)')}
             onBlur={e => (e.target.style.borderColor = 'rgba(255, 248, 235, 0.1)')} />
         </div>
-        <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
           <button type="submit" disabled={status === 'loading'}
             style={{
-              background: AMBER,
-              color: '#0E0D0B',
+              background: status === 'success' ? '#27241D' : AMBER,
+              color: status === 'success' ? '#D4960F' : '#0E0D0B',
+              border: status === 'success' ? '1px solid rgba(200, 130, 10, 0.4)' : 'none',
               fontFamily: "'Inter', sans-serif",
               fontWeight: 600,
               fontSize: '0.72rem',
@@ -128,19 +118,68 @@ const ContactForm = () => {
               textTransform: 'uppercase',
               padding: '0.875rem 2rem',
               borderRadius: '3px',
-              border: 'none',
               cursor: status === 'loading' ? 'not-allowed' : 'pointer',
               opacity: status === 'loading' ? 0.7 : 1,
-              transition: 'background 200ms ease, transform 200ms ease',
+              transition: 'background 200ms ease, transform 200ms ease, color 200ms ease',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#E8970C'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = AMBER; e.currentTarget.style.transform = 'none'; }}
+            onMouseEnter={e => {
+              if (status !== 'success') {
+                e.currentTarget.style.background = '#E8970C';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }
+            }}
+            onMouseLeave={e => {
+              if (status !== 'success') {
+                e.currentTarget.style.background = AMBER;
+                e.currentTarget.style.transform = 'none';
+              }
+            }}
           >
-            {status === 'loading' ? 'Sending...' : 'Send Message →'}
+            {status === 'loading' ? 'Sending...' : status === 'success' ? '✓ Message Sent' : 'Send Message →'}
           </button>
+
+          {status === 'success' && (
+            <motion.div
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                background: 'rgba(200, 130, 10, 0.08)',
+                border: '1px solid rgba(200, 130, 10, 0.25)',
+                padding: '0.55rem 1rem',
+                borderRadius: '3px',
+              }}
+            >
+              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: AMBER, boxShadow: '0 0 6px rgba(200, 130, 10, 0.8)' }} />
+              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.78rem', color: '#F5EFE0', fontWeight: 500 }}>
+                Confirmation sent to your email inbox.
+              </span>
+            </motion.div>
+          )}
+
+          {status === 'error' && (
+            <motion.div
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                background: 'rgba(220, 80, 80, 0.08)',
+                border: '1px solid rgba(220, 80, 80, 0.25)',
+                padding: '0.55rem 1rem',
+                borderRadius: '3px',
+              }}
+            >
+              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#c46a6a' }} />
+              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.78rem', color: '#F5EFE0', fontWeight: 500 }}>
+                Unable to send message. Please try again.
+              </span>
+            </motion.div>
+          )}
         </div>
-        {status === 'success' && <p style={{ fontFamily: "'JetBrains Mono', monospace", color: '#6aaf6a', fontSize: '0.75rem', letterSpacing: '0.1em' }}>Message sent — I'll be in touch shortly.</p>}
-        {status === 'error' && <p style={{ fontFamily: "'JetBrains Mono', monospace", color: '#c46a6a', fontSize: '0.75rem', letterSpacing: '0.1em' }}>Failed to send. Please try again.</p>}
       </form>
     </div>
   );
@@ -233,46 +272,8 @@ export default function App() {
 
 
 
-        {/* ── Experience ── */}
-        <section className="section" style={{ background: '#000000' }}>
-          <div className="section-inner" style={{ maxWidth: 860, margin: '0 auto' }}>
-            <Reveal><h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', color: '#F5EFE0', letterSpacing: '-0.02em', fontStyle: 'italic', marginBottom: '0.5rem', lineHeight: 1.1, fontWeight: 700 }}>Where I've Built.</h2></Reveal>
-            <Reveal delay={0.05}><p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.6rem', color: '#5A5248', textTransform: 'uppercase', letterSpacing: '0.18em', marginBottom: '4.5rem' }}>Engineering · Intelligent Systems · Product</p></Reveal>
-
-            <div style={{ position: 'relative', paddingLeft: '3rem' }}>
-              <div style={{ position: 'absolute', top: 0, bottom: 0, left: '11px', width: '1px', background: 'linear-gradient(180deg, rgba(200,130,10,0) 0%, rgba(200,130,10,0.25) 15%, rgba(200,130,10,0.25) 85%, rgba(200,130,10,0) 100%)', borderRadius: '2px' }} />
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
-                {experience.map(({ role, org, period, desc }, i) => (
-                  <Reveal key={org} delay={0.1 * i}>
-                    <div style={{ position: 'relative', transition: 'transform 380ms cubic-bezier(0.16, 1, 0.3, 1)', cursor: 'default' }}
-                      onMouseEnter={e => { const d = e.currentTarget as HTMLDivElement; d.style.transform = 'translateX(6px)'; }}
-                      onMouseLeave={e => { const d = e.currentTarget as HTMLDivElement; d.style.transform = 'none'; }}>
-
-                      <div style={{ position: 'absolute', left: '-3rem', top: '22px', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: AMBER, opacity: 0.8 }} />
-                      </div>
-
-                      <div className="glass" style={{ borderRadius: 4, padding: '2rem 2.5rem', transition: 'border-color 200ms ease, background 200ms ease' }}
-                        onMouseEnter={e => { const d = e.currentTarget as HTMLDivElement; d.style.borderColor = 'rgba(200, 130, 10, 0.15)'; d.style.background = 'rgba(200, 130, 10, 0.03)'; }}
-                        onMouseLeave={e => { const d = e.currentTarget as HTMLDivElement; d.style.borderColor = 'rgba(255, 248, 235, 0.07)'; d.style.background = 'rgba(20, 19, 16, 0.65)'; }}>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-                          <div>
-                            <h3 style={{ fontFamily: "'Inter', sans-serif", fontSize: '1.1rem', fontWeight: 600, color: '#F5EFE0', letterSpacing: '-0.01em', marginBottom: '0.25rem' }}>{role}</h3>
-                            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.85rem', color: AMBER, fontWeight: 500 }}>{org}</p>
-                          </div>
-                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.58rem', color: '#5A5248', letterSpacing: '0.1em', background: 'rgba(255, 248, 235, 0.04)', padding: '0.3rem 0.7rem', borderRadius: '3px', border: '1px solid rgba(255, 248, 235, 0.06)' }}>{period}</span>
-                        </div>
-                        <p className="body-text" style={{ fontSize: '0.9rem', lineHeight: 1.75 }}>{desc}</p>
-                      </div>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* ── 05 / WHERE I'VE BUILT — CAREER STAIRCASE JOURNEY ── */}
+        <ExperienceStaircase />
 
         <div className="divider" />
 
@@ -297,25 +298,7 @@ export default function App() {
           </div>
         </section>
 
-        <div className="divider" />
 
-        {/* ── Philosophy ── */}
-        <section className="section" style={{ background: '#000000', textAlign: 'center' }}>
-          <div className="section-inner" style={{ maxWidth: 780 }}>
-            <Reveal>
-              <p className="eyebrow" style={{ textAlign: 'center', marginBottom: '2.5rem' }}>Philosophy</p>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.8rem, 6vw, 5.5rem)', lineHeight: 1.06, letterSpacing: '-0.03em', color: '#F5EFE0', marginBottom: '2.5rem', fontWeight: 700 }}>
-                Building systems <em style={{ color: AMBER }}>that think.</em>
-              </h2>
-              <p className="body-text" style={{ maxWidth: 600, margin: '0 auto 1.5rem' }}>
-                I'm interested in systems where AI, engineering, and digital experience converge to create intelligent, meaningful, and future-facing products.
-              </p>
-              <p className="body-text" style={{ maxWidth: 540, margin: '0 auto' }}>
-                My focus is not just writing code — but designing experiences that feel seamless, adaptive, and deeply human.
-              </p>
-            </Reveal>
-          </div>
-        </section>
 
         <div className="divider" />
 

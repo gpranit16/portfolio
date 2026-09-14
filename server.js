@@ -20,48 +20,70 @@ app.post('/api/contact', async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
 
+  const emailUser = (process.env.EMAIL_USER || '').trim();
+  const emailPass = (process.env.EMAIL_PASS || '').replace(/\s+/g, '');
+
+  if (!emailUser || !emailPass) {
+    console.error('Email credentials missing: EMAIL_USER or EMAIL_PASS not set in .env');
+    return res.status(500).json({ error: 'Email configuration is missing on server.' });
+  }
+
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: emailUser,
+      pass: emailPass,
     },
   });
 
   try {
     // 1. Email to Pranit
     await transporter.sendMail({
-      from: `"${name}" <${process.env.EMAIL_USER}>`,
+      from: `"${name}" <${emailUser}>`,
       replyTo: email,
-      to: process.env.EMAIL_USER,
-      subject: `[Portfolio] New Message from ${name}`,
+      to: emailUser,
+      subject: `[Portfolio Query] New Message from ${name}`,
       html: `
-        <h3>New Query from Portfolio</h3>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Query:</strong></p>
-        <p style="padding: 12px; border-left: 4px solid #C8820A; background: #f9f9f9; color: #333;">${query}</p>
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; padding: 24px; color: #1a1a1a; max-width: 600px; border: 1px solid #e5e0d8; border-radius: 8px; background: #ffffff;">
+          <h2 style="color: #C8820A; margin-top: 0; font-size: 20px;">New Portfolio Inquiry</h2>
+          <p style="margin: 8px 0;"><strong>Sender Name:</strong> ${name}</p>
+          <p style="margin: 8px 0;"><strong>Sender Email:</strong> <a href="mailto:${email}" style="color: #C8820A;">${email}</a></p>
+          <p style="margin: 16px 0 8px 0;"><strong>Message / Query:</strong></p>
+          <div style="padding: 16px; border-left: 4px solid #C8820A; background: #fbf9f5; border-radius: 4px; font-size: 15px; line-height: 1.6; color: #222;">
+            ${query.replace(/\n/g, '<br/>')}
+          </div>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0 16px;" />
+          <p style="font-size: 12px; color: #888; margin: 0;">Sent directly from your portfolio contact form.</p>
+        </div>
       `,
     });
 
     // 2. Auto-reply to the sender
     await transporter.sendMail({
-      from: `"Pranit Kumar" <${process.env.EMAIL_USER}>`,
+      from: `"Pranit Kumar" <${emailUser}>`,
       to: email,
       subject: `Thank you for connecting, ${name}!`,
       html: `
-        <div style="font-family: sans-serif; color: #1a1a1a;">
-          <p>Hi ${name},</p>
-          <p>Thank you for reaching out! I've received your message and will get back to you as soon as I can.</p>
-          <p>Best regards,<br/><strong>Pranit Kumar</strong><br/>AI Engineer & Full Stack Developer</p>
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; padding: 24px; color: #1a1a1a; max-width: 600px; border: 1px solid #e5e0d8; border-radius: 8px; background: #ffffff;">
+          <h2 style="color: #C8820A; margin-top: 0; font-size: 20px;">Thank You for Reaching Out!</h2>
+          <p style="font-size: 15px; line-height: 1.6;">Hi <strong>${name}</strong>,</p>
+          <p style="font-size: 15px; line-height: 1.6;">Thank you for getting in touch through my portfolio. I've received your query and will get back to you shortly.</p>
+          <div style="padding: 14px 18px; border-left: 3px solid #C8820A; background: #fbf9f5; margin: 18px 0; font-style: italic; color: #444; border-radius: 4px;">
+            "${query.replace(/\n/g, '<br/>')}"
+          </div>
+          <p style="font-size: 14px; line-height: 1.6; color: #555;">In the meantime, feel free to explore my open-source projects or connect on LinkedIn and GitHub.</p>
+          <br/>
+          <p style="margin-bottom: 4px; font-size: 15px;">Best regards,</p>
+          <p style="margin-top: 0; font-size: 15px;"><strong>Pranit Kumar</strong><br/><span style="color: #8A8070; font-size: 13px;">AI Systems &amp; Full Stack Developer</span></p>
         </div>
       `,
     });
 
+    console.log(`[Contact API] Successfully processed message and sent auto-reply to ${email}`);
     res.status(200).json({ message: 'Message sent successfully!' });
   } catch (error) {
     console.error('Email error:', error);
-    res.status(500).json({ error: 'Failed to send message. Please try again later.' });
+    res.status(500).json({ error: 'Failed to send message. Please check server logs.' });
   }
 });
 
