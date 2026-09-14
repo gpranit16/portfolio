@@ -371,8 +371,18 @@ Churn Reaper is an applied ML platform that predicts customer churn and prescrib
 - **Infrastructure & Tools**: Docker, Git, GitHub, Vercel, Render, Postman`;
         fallbackSources = [{ source: 'PORTFOLIO · Technical Arsenal', title: 'Approved Technical Stack & Expertise' }];
       } else {
-        fallbackText = "I couldn't verify that from Pranit's portfolio context. Feel free to ask about Pranit's skills, experience, projects (TARK AI, Syncora, Churn Reaper), education, or career goals.";
-        fallbackSources = [{ source: 'PORTFOLIO · Candidate Profile', title: 'Candidate Profile & Background' }];
+        const isOutOfScope =
+          /\b(cat|cats|dog|dogs|animal|weather|elon\s+musk|joke|binary\s+search|quantum\s+computing|recipe|president|capital\s+of|continents)\b/i.test(lowerQ) ||
+          lowerQ.startsWith('what is a ') ||
+          (lowerQ.startsWith('who is ') && !lowerQ.includes('pranit'));
+
+        if (isOutOfScope) {
+          fallbackText = "I can answer questions about Pranit and his portfolio, but that question is outside my scope.";
+          fallbackSources = [];
+        } else {
+          fallbackText = "I couldn't verify that from Pranit's portfolio context.";
+          fallbackSources = [];
+        }
       }
 
       setMessages(prev => prev.map(m => m.id === assistantMsgId ? { ...m, content: fallbackText, sources: fallbackSources, isStreaming: false } : m));

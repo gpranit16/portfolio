@@ -199,12 +199,22 @@ export default function TarkAssistant({ isOpen, onClose, initialQuery }: TarkAss
 
         console.warn('TARK Assistant falling back gracefully:', err);
 
-        // Smart Structured Technical Fallback
-        const lowerQ = q.toLowerCase();
+        // Strict Scope & Technical Fallback
+        const lowerQ = q.toLowerCase().trim();
         let fallbackText = '';
         let fallbackSources: SourceCitation[] = [];
 
-        if (lowerQ.includes('rag') || lowerQ.includes('retriev') || lowerQ.includes('search')) {
+        // Check if query is out-of-scope
+        const isOutOfScope =
+          /\b(cat|cats|dog|dogs|animal|weather|elon\s+musk|joke|binary\s+search|quantum\s+computing|movie|recipe|president|capital\s+of)\b/i.test(lowerQ) ||
+          lowerQ.startsWith('what is a ') ||
+          lowerQ.startsWith('who is ') && !lowerQ.includes('pranit') ||
+          ((lowerQ.includes('syncora') || lowerQ.includes('churn reaper')) && !lowerQ.includes('tark'));
+
+        if (isOutOfScope) {
+          fallbackText = "I can answer questions about the TARK AI project, but that question is outside my scope.";
+          fallbackSources = [];
+        } else if (lowerQ.includes('rag') || lowerQ.includes('retriev') || lowerQ.includes('search') || lowerQ.includes('crag')) {
           fallbackText = `### Corrective RAG (CRAG) Pipeline in TARK AI
 
 TARK AI implements a **multi-stage hybrid retrieval architecture** designed for high-precision technical answers:
@@ -260,7 +270,7 @@ TARK AI provides 44+ registered tools executed through a secured runtime:
           fallbackSources = [
             { source: 'ARCHITECTURE.md', file_path: 'ARCHITECTURE.md', section: 'Tool Sandbox', title: 'Tool Execution' },
           ];
-        } else {
+        } else if (lowerQ.includes('tark') || lowerQ.includes('architecture') || lowerQ.includes('stack') || lowerQ.includes('who built')) {
           fallbackText = `### TARK AI: Technical Overview
 
 **TARK AI** is an open-source, full-stack **Agentic AI Workspace & Personal Productivity System** designed to move beyond passive chat into deep reasoning and action.
@@ -272,6 +282,9 @@ Feel free to ask about any specific architectural module!`;
           fallbackSources = [
             { source: 'README.md', file_path: 'README.md', section: 'System Architecture', title: 'TARK AI Overview' },
           ];
+        } else {
+          fallbackText = "I couldn't verify that from the TARK AI project context.";
+          fallbackSources = [];
         }
 
         setMessages((prev) =>

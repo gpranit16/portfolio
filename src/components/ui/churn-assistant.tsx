@@ -205,14 +205,24 @@ export default function ChurnAssistant({ isOpen, onClose, initialQuery }: ChurnA
           // Stopped by user
         } else {
           console.warn('Churn Assistant fallback:', err);
+          const lowerQ = q.toLowerCase().trim();
+          const isOutOfScope =
+            /\b(cat|cats|dog|dogs|animal|weather|elon\s+musk|joke|binary\s+search|quantum\s+computing|movie|recipe|president|capital\s+of)\b/i.test(lowerQ) ||
+            lowerQ.startsWith('what is a ') ||
+            lowerQ.startsWith('who is ') && !lowerQ.includes('pranit') ||
+            ((lowerQ.includes('tark') || lowerQ.includes('syncora')) && !lowerQ.includes('churn'));
+
+          const fallbackText = isOutOfScope
+            ? "I can answer questions about the Churn Reaper project, but that question is outside my scope."
+            : "I couldn't verify that from the Churn Reaper project context.";
+
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantMsgId
                 ? {
                     ...m,
-                    content:
-                      m.content ||
-                      "I couldn't verify that from the Churn Reaper project context. Please try again.",
+                    content: m.content || fallbackText,
+                    sources: [],
                     isStreaming: false,
                   }
                 : m

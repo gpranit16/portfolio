@@ -199,12 +199,22 @@ export default function SyncoraAssistant({ isOpen, onClose, initialQuery }: Sync
 
         console.warn('Syncora Assistant fallback:', err);
 
-        // Smart Structured Technical Fallback
-        const lowerQ = q.toLowerCase();
+        // Strict Scope & Technical Fallback
+        const lowerQ = q.toLowerCase().trim();
         let fallbackText = '';
         let fallbackSources: SourceCitation[] = [];
 
-        if (lowerQ.includes('real-time') || lowerQ.includes('collaboration') || lowerQ.includes('socket') || lowerQ.includes('channel')) {
+        // Check if query is out-of-scope
+        const isOutOfScope =
+          /\b(cat|cats|dog|dogs|animal|weather|elon\s+musk|joke|binary\s+search|quantum\s+computing|movie|recipe|president|capital\s+of)\b/i.test(lowerQ) ||
+          lowerQ.startsWith('what is a ') ||
+          lowerQ.startsWith('who is ') && !lowerQ.includes('pranit') ||
+          ((lowerQ.includes('tark') || lowerQ.includes('churn reaper')) && !lowerQ.includes('syncora'));
+
+        if (isOutOfScope) {
+          fallbackText = "I can answer questions about the Syncora project, but that question is outside my scope.";
+          fallbackSources = [];
+        } else if (lowerQ.includes('real-time') || lowerQ.includes('collaboration') || lowerQ.includes('socket') || lowerQ.includes('channel')) {
           fallbackText = `### Real-Time Collaboration in Syncora
 
 Syncora powers live multi-user team interactions using a low-latency event architecture:
@@ -219,7 +229,7 @@ Syncora powers live multi-user team interactions using a low-latency event archi
             { source: 'docs/architecture.md', file_path: 'docs/architecture.md', section: 'Real-Time Communication', title: 'Real-Time Architecture' },
             { source: 'docs/features.md', file_path: 'docs/features.md', section: 'Channels & Messaging', title: 'Channel Features' },
           ];
-        } else if (lowerQ.includes('meeting') || lowerQ.includes('transcript') || lowerQ.includes('call') || lowerQ.includes('voice')) {
+        } else if (lowerQ.includes('meeting') || lowerQ.includes('transcript') || lowerQ.includes('call') || lowerQ.includes('voice') || lowerQ.includes('webrtc')) {
           fallbackText = `### Meetings & Live Intelligence in Syncora
 
 Syncora integrates live voice/video collaboration directly into project channels:
@@ -231,7 +241,7 @@ Syncora integrates live voice/video collaboration directly into project channels
             { source: 'docs/PROJECT_SPEC.md', file_path: 'docs/PROJECT_SPEC.md', section: 'Meetings & Audio Intelligence', title: 'Meeting Workflows' },
             { source: 'docs/features.md', file_path: 'docs/features.md', section: 'Meeting Transcripts', title: 'Transcript System' },
           ];
-        } else if (lowerQ.includes('ai') || lowerQ.includes('intelligence') || lowerQ.includes('summary')) {
+        } else if (lowerQ.includes('ai') || lowerQ.includes('intelligence') || lowerQ.includes('summary') || lowerQ.includes('nemotron')) {
           fallbackText = `### AI Capabilities in Syncora
 
 Syncora brings AI assistance directly into daily team workflows:
@@ -242,7 +252,7 @@ Syncora brings AI assistance directly into daily team workflows:
           fallbackSources = [
             { source: 'docs/features.md', file_path: 'docs/features.md', section: 'AI Meeting Intelligence', title: 'AI Capabilities' },
           ];
-        } else if (lowerQ.includes('task') || lowerQ.includes('sprint') || lowerQ.includes('board') || lowerQ.includes('todo')) {
+        } else if (lowerQ.includes('task') || lowerQ.includes('sprint') || lowerQ.includes('board') || lowerQ.includes('todo') || lowerQ.includes('kanban')) {
           fallbackText = `### Task & Sprint System in Syncora
 
 The task workspace provides unified project tracking alongside messaging:
@@ -253,7 +263,7 @@ The task workspace provides unified project tracking alongside messaging:
           fallbackSources = [
             { source: 'docs/database-design.md', file_path: 'docs/database-design.md', section: 'Tasks Schema', title: 'Task Data Model' },
           ];
-        } else {
+        } else if (lowerQ.includes('syncora') || lowerQ.includes('architecture') || lowerQ.includes('stack') || lowerQ.includes('who built')) {
           fallbackText = `### Syncora: Technical Overview
 
 **Syncora** is a full-stack **AI-Powered Team Collaboration & Productivity Workspace** combining messaging, tasks, and live meetings.
@@ -265,6 +275,9 @@ Feel free to ask about any specific collaboration feature or implementation modu
           fallbackSources = [
             { source: 'docs/architecture.md', file_path: 'docs/architecture.md', section: 'Overview', title: 'System Architecture' },
           ];
+        } else {
+          fallbackText = "I couldn't verify that from the Syncora project context.";
+          fallbackSources = [];
         }
 
         setMessages((prev) =>

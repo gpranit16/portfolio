@@ -6,6 +6,7 @@ import { retrieveRelevantChunks, buildSystemPrompt, loadKnowledgeBase } from './
 import { retrieveSyncoraChunks, buildSyncoraSystemPrompt, loadSyncoraKnowledge } from './server/syncoraRagService.js';
 import { retrieveChurnChunks, buildChurnSystemPrompt, loadChurnKnowledge } from './server/churnRagService.js';
 import { retrieveGlobalPranitChunks, buildGlobalPranitSystemPrompt } from './server/globalPranitRagService.js';
+import { checkDomainScope } from './server/domainGuardrails.js';
 
 dotenv.config();
 
@@ -99,6 +100,20 @@ app.post('/api/tark-assistant/chat', async (req, res) => {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'Server configuration error: GROQ_API_KEY not found.' });
+  }
+
+  // 0. Strict Domain Boundary Guardrail
+  const scopeCheck = checkDomainScope('tark', question);
+  if (!scopeCheck.inScope) {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.write(`data: ${JSON.stringify({ type: 'sources', sources: [] })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'delta', delta: scopeCheck.refusal })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+    res.end();
+    return;
   }
 
   // 1. Retrieve relevant project context
@@ -253,6 +268,20 @@ app.post('/api/syncora-assistant/chat', async (req, res) => {
     return res.status(500).json({ error: 'Server configuration error: GROQ_API_KEY not found.' });
   }
 
+  // 0. Strict Domain Boundary Guardrail
+  const scopeCheck = checkDomainScope('syncora', question);
+  if (!scopeCheck.inScope) {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.write(`data: ${JSON.stringify({ type: 'sources', sources: [] })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'delta', delta: scopeCheck.refusal })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+    res.end();
+    return;
+  }
+
   // 1. Retrieve relevant Syncora context
   const { chunks, sources } = retrieveSyncoraChunks(question, 5);
   const systemPrompt = buildSyncoraSystemPrompt(chunks);
@@ -400,6 +429,20 @@ app.post('/api/churn-assistant/chat', async (req, res) => {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'Server configuration error: GROQ_API_KEY not found.' });
+  }
+
+  // 0. Strict Domain Boundary Guardrail
+  const scopeCheck = checkDomainScope('churn', question);
+  if (!scopeCheck.inScope) {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.write(`data: ${JSON.stringify({ type: 'sources', sources: [] })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'delta', delta: scopeCheck.refusal })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+    res.end();
+    return;
   }
 
   // 1. Retrieve relevant Churn Reaper context
@@ -551,6 +594,20 @@ app.post('/api/pranit-assistant/chat', async (req, res) => {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'Server configuration error: GROQ_API_KEY not found.' });
+  }
+
+  // 0. Strict Domain Boundary Guardrail
+  const scopeCheck = checkDomainScope('pranit', question);
+  if (!scopeCheck.inScope) {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.write(`data: ${JSON.stringify({ type: 'sources', sources: [] })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'delta', delta: scopeCheck.refusal })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+    res.end();
+    return;
   }
 
   // 1. Retrieve relevant global portfolio context
