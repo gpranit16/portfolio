@@ -1,57 +1,91 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  SiReact, SiTailwindcss, SiJavascript, 
-  SiNodedotjs, SiExpress, SiMongodb, 
-  SiOpenai, SiGithub, SiVercel, SiRender, SiPostman
+  SiC, 
+  SiCplusplus, 
+  SiPython, 
+  SiJavascript, 
+  SiLangchain, 
+  SiOpenai, 
+  SiFastapi, 
+  SiNodedotjs, 
+  SiExpress, 
+  SiPostgresql, 
+  SiMongodb, 
+  SiDocker, 
+  SiGithub, 
+  SiVercel, 
+  SiRender, 
+  SiPostman 
 } from 'react-icons/si';
-import { FaDatabase, FaCode, FaLink, FaBrain, FaChevronRight } from 'react-icons/fa';
+import { Network, Database, Layers, Search, ArrowLeftRight } from 'lucide-react';
 
-const AMBER = '#D4960F';
+const AMBER = '#C8820A';
+const AMBER_LIGHT = '#D4960F';
 
+interface TechItem {
+  name: string;
+  icon: React.ReactNode;
+}
 
-const techCategories = [
+interface TechCategory {
+  id: string;
+  index: string;
+  category: string;
+  skills: TechItem[];
+  isPrimary?: boolean;
+}
+
+const techCategories: TechCategory[] = [
   {
-    id: 'frontend',
-    title: "FRONTEND",
-    icon: <FaCode size={18} />,
+    id: 'languages',
+    index: '01',
+    category: 'LANGUAGES',
     skills: [
-      { name: "React.js", icon: <SiReact size={16} color="#61DAFB" /> },
-      { name: "Tailwind CSS", icon: <SiTailwindcss size={16} color="#06B6D4" /> },
-      { name: "JavaScript", icon: <SiJavascript size={16} color="#F7DF1E" /> },
-      { name: "Responsive UI", icon: <FaCode size={16} color="#C8BFA8" /> },
+      { name: 'C', icon: <SiC size={14} /> },
+      { name: 'C++', icon: <SiCplusplus size={14} /> },
+      { name: 'Python', icon: <SiPython size={14} /> },
+      { name: 'JavaScript', icon: <SiJavascript size={14} /> },
     ]
   },
   {
-    id: 'backend',
-    title: "BACKEND",
-    icon: <SiNodedotjs size={18} />,
+    id: 'ai-systems',
+    index: '02',
+    category: 'AI SYSTEMS',
+    isPrimary: true,
     skills: [
-      { name: "Node.js", icon: <SiNodedotjs size={16} color="#339933" /> },
-      { name: "Express.js", icon: <SiExpress size={16} color="#C8BFA8" /> },
-      { name: "MongoDB", icon: <SiMongodb size={16} color="#47A248" /> },
-      { name: "REST APIs", icon: <FaLink size={16} color="#8A8070" /> },
+      { name: 'LangChain', icon: <SiLangchain size={14} /> },
+      { name: 'LangGraph', icon: <Network size={14} strokeWidth={1.75} /> },
+      { name: 'OpenAI SDK', icon: <SiOpenai size={14} /> },
+      { name: 'RAG / CRAG', icon: <Layers size={14} strokeWidth={1.75} /> },
+      { name: 'Embeddings', icon: <Database size={14} strokeWidth={1.75} /> },
+      { name: 'Vector Search', icon: <Search size={14} strokeWidth={1.75} /> },
     ]
   },
   {
-    id: 'ai',
-    title: "AI & ML",
-    icon: <FaBrain size={18} />,
+    id: 'backend-data',
+    index: '03',
+    category: 'BACKEND & DATA',
     skills: [
-      { name: "LangChain", icon: <FaLink size={16} color="#C8BFA8" /> },
-      { name: "RAG Systems", icon: <FaDatabase size={16} color="#8A8070" /> },
-      { name: "OpenAI SDK", icon: <SiOpenai size={16} color="#C8BFA8" /> },
-      { name: "Vector Databases", icon: <FaDatabase size={16} color="#8A8070" /> },
+      { name: 'FastAPI', icon: <SiFastapi size={14} /> },
+      { name: 'Node.js', icon: <SiNodedotjs size={14} /> },
+      { name: 'Express.js', icon: <SiExpress size={14} /> },
+      { name: 'PostgreSQL', icon: <SiPostgresql size={14} /> },
+      { name: 'MongoDB', icon: <SiMongodb size={14} /> },
+      { name: 'pgvector', icon: <Database size={14} strokeWidth={1.75} /> },
+      { name: 'REST APIs', icon: <ArrowLeftRight size={14} strokeWidth={1.75} /> },
     ]
   },
   {
-    id: 'tools',
-    title: "TOOLS",
-    icon: <FaChevronRight size={18} />,
+    id: 'infra-tools',
+    index: '04',
+    category: 'INFRA & TOOLS',
     skills: [
-      { name: "Git & GitHub", icon: <SiGithub size={16} color="#C8BFA8" /> },
-      { name: "Vercel", icon: <SiVercel size={16} color="#C8BFA8" /> },
-      { name: "Render", icon: <SiRender size={16} color="#C8BFA8" /> },
-      { name: "Postman", icon: <SiPostman size={16} color="#FF6C37" /> },
+      { name: 'Docker', icon: <SiDocker size={14} /> },
+      { name: 'Git & GitHub', icon: <SiGithub size={14} /> },
+      { name: 'Vercel', icon: <SiVercel size={14} /> },
+      { name: 'Render', icon: <SiRender size={14} /> },
+      { name: 'Postman', icon: <SiPostman size={14} /> },
     ]
   }
 ];
@@ -60,18 +94,83 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.15 }
+    transition: {
+      staggerChildren: 0.1,
+    }
   }
 };
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 40 },
+  hidden: { opacity: 0, y: 20 },
   visible: { 
     opacity: 1, 
     y: 0,
-    transition: { type: "spring" as const, stiffness: 60, damping: 20 }
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }
   }
 };
+
+function TechRow({ skill, isLast, rowPadding }: { skill: TechItem; isLast: boolean; rowPadding: string }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: rowPadding,
+        borderBottom: isLast ? 'none' : '1px solid rgba(255, 248, 235, 0.04)',
+        transform: hovered ? 'translateX(3px)' : 'translateX(0)',
+        transition: 'transform 200ms cubic-bezier(0.16, 1, 0.3, 1)',
+        cursor: 'default',
+        borderRadius: '2px',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '16px',
+            height: '16px',
+            color: hovered ? AMBER_LIGHT : '#8A8070',
+            transition: 'color 200ms ease',
+            flexShrink: 0,
+          }}
+        >
+          {skill.icon}
+        </div>
+        <span
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: '0.9375rem',
+            color: hovered ? '#F5EFE0' : '#E8E1D5',
+            fontWeight: 400,
+            letterSpacing: '-0.01em',
+            transition: 'color 200ms ease',
+          }}
+        >
+          {skill.name}
+        </span>
+      </div>
+
+      <div
+        style={{
+          width: '3.5px',
+          height: '3.5px',
+          borderRadius: '50%',
+          background: AMBER,
+          opacity: hovered ? 0.9 : 0,
+          transform: hovered ? 'scale(1)' : 'scale(0.5)',
+          transition: 'opacity 200ms ease, transform 200ms ease',
+        }}
+      />
+    </div>
+  );
+}
 
 export default function TechStack() {
   return (
@@ -79,177 +178,178 @@ export default function TechStack() {
       id="tech-stack" 
       style={{
         position: 'relative',
-        minHeight: '100vh',
-        padding: '6rem 2rem',
+        padding: '7rem 2rem 7rem',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
+        background: '#0E0D0B',
         overflow: 'hidden',
-        background: '#000000',
       }}
     >
-      {/* Background glow lines */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none',
-        backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(30,58,138,0.15), transparent 70%)',
-      }} />
+      {/* Subtle ambient lighting consistent with Hero and About */}
+      <div 
+        style={{
+          position: 'absolute',
+          top: '25%',
+          left: '50%',
+          transform: 'translate(-50%, -25%)',
+          width: '750px',
+          height: '450px',
+          background: 'radial-gradient(ellipse at center, rgba(200, 130, 10, 0.025) 0%, rgba(200, 130, 10, 0) 70%)',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }} 
+      />
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', position: 'relative', zIndex: 10 }}>
+      <div style={{ maxWidth: '1240px', margin: '0 auto', width: '100%', position: 'relative', zIndex: 10 }}>
         
-        {/* Section header */}
-        <div style={{ marginBottom: '4rem' }}>
+        {/* Section Header */}
+        <div style={{ marginBottom: '3.5rem' }}>
           <motion.p
-            initial={{ opacity: 0, y: -16 }}
+            initial={{ opacity: 0, y: -10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
             style={{
               fontFamily: "'JetBrains Mono', monospace",
-              fontSize: '0.6rem',
+              fontSize: '0.6875rem',
               color: AMBER,
               textTransform: 'uppercase',
               letterSpacing: '0.22em',
-              marginBottom: '1.25rem',
+              marginBottom: '0.85rem',
+              fontWeight: 500,
             }}
           >
-            Technical Foundation
+            TECHNICAL FOUNDATION
           </motion.p>
           
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
+            transition={{ duration: 0.6, delay: 0.08, ease: [0.22, 1, 0.36, 1] as const }}
             style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: 'clamp(2.8rem, 5vw, 4.5rem)',
+              fontSize: 'clamp(2.4rem, 4.2vw, 3.6rem)',
               fontWeight: 700,
               color: '#F5EFE0',
-              marginBottom: '1rem',
-              lineHeight: 1.05,
-              letterSpacing: '-0.025em',
+              lineHeight: 1.08,
+              letterSpacing: '-0.02em',
+              margin: 0,
             }}
           >
             Tech Stack.
           </motion.h2>
-          
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.15 }}
-            style={{
-              fontFamily: "'Inter', sans-serif",
-              color: '#8A8070',
-              fontSize: '0.975rem',
-              maxWidth: '480px',
-              lineHeight: 1.75,
-            }}
-          >
-            Tools I use to build scalable full-stack and AI-powered systems.
-          </motion.p>
         </div>
 
-        {/* Cards Grid */}
+        {/* 4 Cards Grid */}
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, margin: '-60px' }}
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '2rem',
+            gap: '1.5rem',
             alignItems: 'stretch'
           }}
         >
-          {techCategories.map((category) => (
-            <motion.div
-              key={category.id}
-              variants={cardVariants}
-              whileHover={{ y: -4 }}
-              style={{
-                position: 'relative',
-                borderRadius: '3px',
-                background: 'rgba(20, 19, 16, 0.65)',
-                border: '1px solid rgba(255, 248, 235, 0.07)',
-                padding: '2.25rem 1.75rem',
-                display: 'flex',
-                flexDirection: 'column',
-                transition: 'border-color 200ms ease, background 200ms ease',
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(200, 130, 10, 0.18)';
-                (e.currentTarget as HTMLDivElement).style.background = 'rgba(200, 130, 10, 0.03)';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255, 248, 235, 0.07)';
-                (e.currentTarget as HTMLDivElement).style.background = 'rgba(20, 19, 16, 0.65)';
-              }}
-            >
-              {/* Category Icon */}
-              <div style={{
-                width: '40px', height: '40px', marginBottom: '1.25rem',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: AMBER,
-                opacity: 0.7,
-              }}>
-                {category.icon}
-              </div>
+          {techCategories.map((category) => {
+            const rowPad = category.skills.length <= 4 
+              ? '1.05rem 0.35rem' 
+              : category.skills.length === 5 
+                ? '0.9rem 0.35rem' 
+                : '0.78rem 0.35rem';
 
-              {/* Category Title */}
-              <p style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: '0.6rem', fontWeight: 500,
-                letterSpacing: '0.2em', textTransform: 'uppercase',
-                color: AMBER, marginBottom: '1.25rem',
-              }}>
-                {category.title}
-              </p>
-
-              {/* Skills List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-                {category.skills.map((skill, idx) => (
-                  <div key={skill.name} style={{
-                    display: 'flex', alignItems: 'center', gap: '0.875rem',
-                    padding: '0.875rem 0',
-                    borderBottom: idx !== category.skills.length - 1 ? '1px solid rgba(255, 248, 235, 0.05)' : 'none',
-                  }}>
-                    <div style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      width: '28px', height: '28px', borderRadius: '3px',
-                      background: 'rgba(255, 248, 235, 0.03)',
-                      border: '1px solid rgba(255, 248, 235, 0.05)',
-                    }}>
-                      {skill.icon}
-                    </div>
-                    <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.875rem', color: '#C8BFA8', fontWeight: 400 }}>
-                      {skill.name}
+            return (
+              <motion.div
+                key={category.id}
+                variants={cardVariants}
+                whileHover={{ y: -3 }}
+                style={{
+                  position: 'relative',
+                  borderRadius: '4px',
+                  background: '#141310',
+                  border: '1px solid rgba(255, 248, 235, 0.08)',
+                  padding: '1.85rem 1.4rem 1.65rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: '0 12px 32px -12px rgba(0, 0, 0, 0.6)',
+                  transition: 'border-color 220ms ease, box-shadow 220ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  const target = e.currentTarget as HTMLDivElement;
+                  target.style.borderColor = 'rgba(200, 130, 10, 0.2)';
+                  target.style.boxShadow = '0 16px 36px -10px rgba(0, 0, 0, 0.75), 0 0 20px rgba(200, 130, 10, 0.025)';
+                }}
+                onMouseLeave={(e) => {
+                  const target = e.currentTarget as HTMLDivElement;
+                  target.style.borderColor = 'rgba(255, 248, 235, 0.08)';
+                  target.style.boxShadow = '0 12px 32px -12px rgba(0, 0, 0, 0.6)';
+                }}
+              >
+                {/* Card Header */}
+                <div 
+                  style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    justifyContent: 'space-between',
+                    paddingBottom: '1.15rem',
+                    marginBottom: '0.95rem',
+                    borderBottom: '1px solid rgba(255, 248, 235, 0.08)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                    <span
+                      style={{
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        color: AMBER,
+                        letterSpacing: '0.12em',
+                      }}
+                    >
+                      {category.index}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        color: '#F5EFE0',
+                        letterSpacing: '0.16em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {category.category}
                     </span>
                   </div>
-                ))}
-              </div>
-            </motion.div>
-          ))}
+                </div>
+
+                {/* Technology Rows */}
+                <div 
+                  style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    flex: 1,
+                    justifyContent: 'flex-start',
+                  }}
+                >
+                  {category.skills.map((skill, idx) => (
+                    <TechRow 
+                      key={skill.name} 
+                      skill={skill} 
+                      isLast={idx === category.skills.length - 1}
+                      rowPadding={rowPad}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            );
+          })}
         </motion.div>
 
-        {/* Footer note */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.5 }}
-          style={{ marginTop: '4rem' }}
-        >
-          <p style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: '0.6rem',
-            color: '#5A5248',
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-          }}>
-            Constantly learning &middot; Continuously building &middot; Always shipping.
-          </p>
-        </motion.div>
       </div>
     </section>
   );

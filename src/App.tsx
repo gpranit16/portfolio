@@ -1,13 +1,12 @@
 import { useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Brain, Cpu, Database, Globe, Layers, Sparkles, Code2, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import ScrollExpandHero from './components/ui/scroll-expansion-hero';
-import TerminalWindow from './components/ui/terminal-window';
+import WhoIAm from './components/ui/who-i-am';
 import { CircularTestimonials } from './components/ui/circular-testimonials';
 import TechStack from './components/ui/tech-stack';
 
 const AMBER = '#D4960F';
-const AMBER_DIM = 'rgba(200, 130, 10, 0.12)';
 
 
 const Reveal = ({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) => {
@@ -176,8 +175,6 @@ const achievements = [
   { stat: 'IEEE', label: 'Leadership Recognition', desc: 'Leading digital systems and technical initiatives within IEEE EMBS as Webmaster.' },
 ];
 
-const skillIcons = [Brain, Cpu, Database, Globe, Layers, Sparkles, Code2];
-
 export default function App() {
   return (
     <>
@@ -185,73 +182,10 @@ export default function App() {
       {/* ── Hero ── */}
       <ScrollExpandHero mediaSrc="/assets/pranit.jpeg" bgImageSrc="/assets/premium_neural_bg.png">
 
-        {/* ── Who I Am ── */}
-        <section id="about" className="section" style={{ background: '#000000' }}>
-          <div className="section-inner">
-            <Reveal><p className="eyebrow">Who I Am</p></Reveal>
-            <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-8 lg:gap-16 items-center">
-              <TerminalWindow />
+        {/* ── 02 / WHO I AM ── */}
+        <WhoIAm />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  { Icon: Brain, title: 'AI Systems', desc: 'Intelligent workflows using ML, RAG pipelines, and modern AI frameworks.' },
-                  { Icon: Layers, title: 'Full Stack', desc: 'Scalable systems using React, FastAPI, PostgreSQL, and modern architecture.' },
-                  { Icon: Sparkles, title: 'Product Design', desc: 'Cinematic digital interfaces focused on clarity, motion, and interaction.' },
-                  { Icon: Cpu, title: 'Automation', desc: 'Automation-driven systems that improve workflows and productivity.' },
-                ].map(({ Icon, title, desc }, i) => (
-                  <Reveal key={title} delay={0.1 * i}>
-                    <div className="glass" style={{ borderRadius: 4, padding: '1.5rem', height: '100%', transition: 'border-color 200ms ease, background 200ms ease' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(200, 130, 10, 0.2)'; (e.currentTarget as HTMLDivElement).style.background = 'rgba(200, 130, 10, 0.04)'; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255, 248, 235, 0.07)'; (e.currentTarget as HTMLDivElement).style.background = 'rgba(20, 19, 16, 0.65)'; }}>
-                      <Icon size={18} color={AMBER} style={{ marginBottom: '0.85rem' }} />
-                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.88rem', fontWeight: 600, color: '#F5EFE0', marginBottom: '0.5rem' }}>{title}</p>
-                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.78rem', color: '#8A8070', lineHeight: 1.65 }}>{desc}</p>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-
-            {/* Floating skill icons row */}
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '3.5rem', flexWrap: 'wrap' }}>
-              {skillIcons.map((Icon, i) => (
-                <div key={i} className="glass" style={{ borderRadius: 3, padding: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 200ms ease, border-color 200ms ease' }}
-                  onMouseEnter={e => { (e.currentTarget.style.background = AMBER_DIM); (e.currentTarget.style.borderColor = 'rgba(200, 130, 10, 0.2)'); }}
-                  onMouseLeave={e => { (e.currentTarget.style.background = 'rgba(20, 19, 16, 0.65)'); (e.currentTarget.style.borderColor = 'rgba(255, 248, 235, 0.07)'); }}>
-                  <Icon size={17} color="rgba(245, 239, 224, 0.3)" />
-                </div>
-              ))}
-            </div>
-
-            {/* Resume Download */}
-            <Reveal delay={0.3}>
-              <div style={{ marginTop: '4rem', display: 'flex', justifyContent: 'center' }}>
-                <a href="/assets/resume_up.pdf" target="_blank" rel="noreferrer"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.6rem',
-                    padding: '0.875rem 2.25rem',
-                    borderRadius: '3px',
-                    background: AMBER,
-                    color: '#0E0D0B',
-                    fontFamily: "'Inter', sans-serif",
-                    fontWeight: 600,
-                    fontSize: '0.72rem',
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    textDecoration: 'none',
-                    transition: 'background 200ms ease, transform 200ms ease',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#E8970C'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = AMBER; e.currentTarget.style.transform = 'none'; }}
-                >
-                  Download Resume ↗
-                </a>
-              </div>
-            </Reveal>
-          </div>
-        </section>
+        <div className="divider" />
 
         <TechStack />
 
