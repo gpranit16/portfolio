@@ -237,14 +237,14 @@ export default function App() {
         <div className="divider" />
 
         {/* ── Achievements ── */}
-        <section id="achievements" className="section" style={{ background: '#000000', scrollMarginTop: '80px' }}>
+        <section id="achievements" className="section" style={{ background: '#000000', scrollMarginTop: '80px', padding: 'clamp(3.5rem, 6vw, 6rem) clamp(1rem, 3vw, 2rem)' }}>
           <div className="section-inner">
             <Reveal><p className="eyebrow">Recognition</p></Reveal>
-            <Reveal delay={0.05}><h2 className="section-title" style={{ marginBottom: '3.5rem' }}>Achievements</h2></Reveal>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+            <Reveal delay={0.05}><h2 className="section-title" style={{ marginBottom: 'clamp(2rem, 4vw, 3.5rem)' }}>Achievements</h2></Reveal>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.25rem' }}>
               {achievements.map(({ stat, label, desc }, i) => (
                 <Reveal key={label} delay={0.1 * i}>
-                  <div className="glass" style={{ borderRadius: 4, padding: '2.5rem', transition: 'transform 300ms ease, border-color 200ms ease' }}
+                  <div className="glass" style={{ borderRadius: 4, padding: 'clamp(1.75rem, 3vw, 2.5rem)', transition: 'transform 300ms ease, border-color 200ms ease' }}
                     onMouseEnter={e => { const d = e.currentTarget as HTMLDivElement; d.style.transform = 'translateY(-3px)'; d.style.borderColor = 'rgba(200, 130, 10, 0.2)'; }}
                     onMouseLeave={e => { const d = e.currentTarget as HTMLDivElement; d.style.transform = 'none'; d.style.borderColor = 'rgba(255, 248, 235, 0.07)'; }}>
                     <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: AMBER, lineHeight: 1, marginBottom: '0.6rem', letterSpacing: '-0.02em', fontWeight: 700 }}>{stat}</p>
@@ -257,19 +257,17 @@ export default function App() {
           </div>
         </section>
 
-
-
         <div className="divider" />
 
         {/* ── Contact ── */}
-        <section id="contact" className="section" style={{ background: '#000000', textAlign: 'center' }}>
+        <section id="contact" className="section" style={{ background: '#000000', textAlign: 'center', padding: 'clamp(3.5rem, 6vw, 6rem) clamp(1rem, 3vw, 2rem)' }}>
           <div className="section-inner" style={{ maxWidth: 800 }}>
             <Reveal><p className="eyebrow" style={{ textAlign: 'center' }}>Contact</p></Reveal>
             <Reveal delay={0.08}>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.8rem, 6vw, 5rem)', lineHeight: 1.06, letterSpacing: '-0.03em', color: '#F5EFE0', marginBottom: '1.5rem', marginTop: '0.5rem', fontStyle: 'italic', fontWeight: 700 }}>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.4rem, 6vw, 5rem)', lineHeight: 1.06, letterSpacing: '-0.03em', color: '#F5EFE0', marginBottom: '1.25rem', marginTop: '0.5rem', fontStyle: 'italic', fontWeight: 700 }}>
                 Let's <span style={{ color: AMBER }}>Connect.</span>
               </h2>
-              <p className="body-text" style={{ maxWidth: 500, margin: '0 auto 3rem' }}>
+              <p className="body-text" style={{ maxWidth: 500, margin: '0 auto clamp(2rem, 4vw, 3rem)' }}>
                 Have a proposal or a project in mind? Reach out below and I'll get back to you.
               </p>
             </Reveal>
@@ -279,27 +277,27 @@ export default function App() {
             </Reveal>
 
             <Reveal delay={0.2}>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '3.5rem', marginBottom: '3.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginTop: '2.5rem', marginBottom: '2.5rem' }}>
                 <a href="mailto:guptapranit34@gmail.com"
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.8rem 1.75rem', borderRadius: '3px', border: '1px solid rgba(200, 130, 10, 0.35)', background: 'rgba(200, 130, 10, 0.08)', color: '#F5EFE0', fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.8rem', textDecoration: 'none', transition: 'all 200ms ease' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 1.4rem', borderRadius: '3px', border: '1px solid rgba(200, 130, 10, 0.35)', background: 'rgba(200, 130, 10, 0.08)', color: '#F5EFE0', fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.8rem', textDecoration: 'none', transition: 'all 200ms ease' }}
                   onMouseEnter={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(200, 130, 10, 0.6)'; a.style.background = 'rgba(200, 130, 10, 0.16)'; }}
                   onMouseLeave={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(200, 130, 10, 0.35)'; a.style.background = 'rgba(200, 130, 10, 0.08)'; }}>
                   <Mail size={14} color={AMBER} /> guptapranit34@gmail.com
                 </a>
                 <a href="tel:+919508746855"
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.8rem 1.75rem', borderRadius: '3px', border: '1px solid rgba(255, 248, 235, 0.1)', color: '#C8BFA8', fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.8rem', textDecoration: 'none', transition: 'border-color 200ms ease, color 200ms ease' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 1.4rem', borderRadius: '3px', border: '1px solid rgba(255, 248, 235, 0.1)', color: '#C8BFA8', fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.8rem', textDecoration: 'none', transition: 'border-color 200ms ease, color 200ms ease' }}
                   onMouseEnter={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(255, 248, 235, 0.25)'; a.style.color = '#F5EFE0'; }}
                   onMouseLeave={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(255, 248, 235, 0.1)'; a.style.color = '#C8BFA8'; }}>
                   <Phone size={14} /> +91 9508746855
                 </a>
                 <a href="https://github.com/gpranit16" target="_blank" rel="noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.8rem 1.75rem', borderRadius: '3px', border: '1px solid rgba(255, 248, 235, 0.1)', color: '#C8BFA8', fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.8rem', textDecoration: 'none', transition: 'border-color 200ms ease, color 200ms ease' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 1.4rem', borderRadius: '3px', border: '1px solid rgba(255, 248, 235, 0.1)', color: '#C8BFA8', fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.8rem', textDecoration: 'none', transition: 'border-color 200ms ease, color 200ms ease' }}
                   onMouseEnter={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(255, 248, 235, 0.25)'; a.style.color = '#F5EFE0'; }}
                   onMouseLeave={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(255, 248, 235, 0.1)'; a.style.color = '#C8BFA8'; }}>
                   <ExternalLink size={14} /> GitHub
                 </a>
                 <a href="https://linkedin.com/in/pranit-kumar-378342357" target="_blank" rel="noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.8rem 1.75rem', borderRadius: '3px', border: '1px solid rgba(255, 248, 235, 0.1)', color: '#C8BFA8', fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.8rem', textDecoration: 'none', transition: 'border-color 200ms ease, color 200ms ease' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 1.4rem', borderRadius: '3px', border: '1px solid rgba(255, 248, 235, 0.1)', color: '#C8BFA8', fontFamily: "'Inter', sans-serif", fontWeight: 500, fontSize: '0.8rem', textDecoration: 'none', transition: 'border-color 200ms ease, color 200ms ease' }}
                   onMouseEnter={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(255, 248, 235, 0.25)'; a.style.color = '#F5EFE0'; }}
                   onMouseLeave={e => { const a = e.currentTarget as HTMLAnchorElement; a.style.borderColor = 'rgba(255, 248, 235, 0.1)'; a.style.color = '#C8BFA8'; }}>
                   <ExternalLink size={14} /> LinkedIn

@@ -37,7 +37,7 @@ export default function WhoIAm() {
         position: 'relative',
         background: '#0E0D0B',
         color: '#F5EFE0',
-        padding: 'clamp(5rem, 8vw, 8.5rem) clamp(1.5rem, 4vw, 4rem)',
+        padding: 'clamp(3.5rem, 6vw, 7rem) clamp(1rem, 3vw, 3rem)',
         overflow: 'hidden',
       }}
     >

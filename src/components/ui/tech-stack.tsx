@@ -178,7 +178,7 @@ export default function TechStack() {
       id="tech-stack" 
       style={{
         position: 'relative',
-        padding: '7rem 2rem 7rem',
+        padding: 'clamp(3.5rem, 6vw, 6.5rem) clamp(1rem, 3vw, 2.5rem)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -204,7 +204,7 @@ export default function TechStack() {
       <div style={{ maxWidth: '1240px', margin: '0 auto', width: '100%', position: 'relative', zIndex: 10 }}>
         
         {/* Section Header */}
-        <div style={{ marginBottom: '3.5rem' }}>
+        <div style={{ marginBottom: 'clamp(2rem, 4vw, 3.5rem)' }}>
           <motion.p
             initial={{ opacity: 0, y: -10 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -220,20 +220,21 @@ export default function TechStack() {
               fontWeight: 500,
             }}
           >
-            TECHNICAL FOUNDATION
+            03 / TECHNICAL CAPABILITIES
           </motion.p>
           
           <motion.h2
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.08, ease: [0.22, 1, 0.36, 1] as const }}
             style={{
               fontFamily: "'Playfair Display', serif",
-              fontSize: 'clamp(2.4rem, 4.2vw, 3.6rem)',
+              fontSize: 'clamp(2.5rem, 4vw, 3.5rem)',
               fontWeight: 700,
+              fontStyle: 'italic',
               color: '#F5EFE0',
-              lineHeight: 1.08,
+              lineHeight: 1.1,
               letterSpacing: '-0.02em',
               margin: 0,
             }}
@@ -250,8 +251,8 @@ export default function TechStack() {
           viewport={{ once: true, margin: '-60px' }}
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '1.5rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
+            gap: '1.25rem',
             alignItems: 'stretch'
           }}
         >

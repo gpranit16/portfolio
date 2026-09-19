@@ -52,6 +52,18 @@ export default function SyncoraShowcase() {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [direction, setDirection] = useState<number>(0);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const prevImage = useCallback(() => {
     setDirection(-1);
@@ -139,7 +151,7 @@ export default function SyncoraShowcase() {
       id="syncora"
       style={{
         position: 'relative',
-        padding: '5.5rem 2rem 5.5rem',
+        padding: 'clamp(3.5rem, 6vw, 5.5rem) clamp(1rem, 3vw, 2rem)',
         background: '#0E0D0B',
         overflow: 'hidden',
       }}
@@ -170,8 +182,8 @@ export default function SyncoraShowcase() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'minmax(320px, 1.05fr) minmax(360px, 1.25fr)',
-            gap: '4rem',
+            gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 1.25fr)',
+            gap: 'clamp(2rem, 4vw, 4rem)',
             alignItems: 'center',
           }}
           className="syncora-layout"
@@ -180,7 +192,7 @@ export default function SyncoraShowcase() {
             @media (max-width: 960px) {
               .syncora-layout {
                 grid-template-columns: 1fr !important;
-                gap: 3.5rem !important;
+                gap: 2.5rem !important;
               }
             }
           `}</style>
@@ -567,9 +579,9 @@ export default function SyncoraShowcase() {
                 <motion.div
                   animate={
                     isOpen
-                      ? { x: -110, y: -45, rotate: -10, scale: 0.88, opacity: 0.85 }
+                      ? { x: isMobile ? -35 : -110, y: isMobile ? -18 : -45, rotate: isMobile ? -5 : -10, scale: 0.88, opacity: 0.85 }
                       : isHovered
-                      ? { x: -45, y: -22, rotate: -5, scale: 0.92, opacity: 0.6 }
+                      ? { x: isMobile ? -16 : -45, y: isMobile ? -10 : -22, rotate: -5, scale: 0.92, opacity: 0.6 }
                       : { x: -14, y: -10, rotate: -2.5, scale: 0.94, opacity: 0.4 }
                   }
                   transition={{ type: 'spring', stiffness: 240, damping: 22 }}
@@ -618,9 +630,9 @@ export default function SyncoraShowcase() {
                 <motion.div
                   animate={
                     isOpen
-                      ? { x: -75, y: -24, rotate: -5.5, scale: 0.94, opacity: 1 }
+                      ? { x: isMobile ? -20 : -75, y: isMobile ? -10 : -24, rotate: -5.5, scale: 0.94, opacity: 1 }
                       : isHovered
-                      ? { x: -28, y: -14, rotate: -3, scale: 0.96, opacity: 0.9 }
+                      ? { x: isMobile ? -12 : -28, y: -14, rotate: -3, scale: 0.96, opacity: 0.9 }
                       : { x: -7, y: -5, rotate: -1.2, scale: 0.97, opacity: 0.8 }
                   }
                   transition={{ type: 'spring', stiffness: 240, damping: 22 }}
@@ -669,7 +681,7 @@ export default function SyncoraShowcase() {
                 <motion.div
                   animate={
                     isOpen
-                      ? { x: 55, y: -38, rotate: 2.8, scale: 1.03 }
+                      ? { x: isMobile ? 20 : 55, y: isMobile ? -14 : -38, rotate: 2.8, scale: 1.03 }
                       : isHovered
                       ? { x: 12, y: -12, rotate: 0.8, scale: 1.01 }
                       : { x: 0, y: 0, rotate: 0, scale: 1 }

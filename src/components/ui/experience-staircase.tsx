@@ -86,10 +86,9 @@ export default function ExperienceStaircase() {
       ref={containerRef}
       style={{
         position: 'relative',
-        padding: '5.5rem 2rem 5rem',
+        padding: 'clamp(3.5rem, 6vw, 5.5rem) clamp(1rem, 3vw, 2rem)',
         background: '#0E0D0B',
         overflow: 'hidden',
-        minHeight: '980px',
       }}
     >
       <style>{`
@@ -125,10 +124,10 @@ export default function ExperienceStaircase() {
           .staircase-mobile-canvas {
             display: flex !important;
             flex-direction: column;
-            gap: 2.5rem;
+            gap: 2rem;
             position: relative;
-            padding-left: 1.5rem;
-            margin-top: 2rem;
+            padding-left: 1.25rem;
+            margin-top: 1.5rem;
           }
         }
         @media (prefers-reduced-motion: reduce) {
