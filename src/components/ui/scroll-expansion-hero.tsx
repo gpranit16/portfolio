@@ -643,7 +643,7 @@ export default function ScrollExpandHero({
               </a>
 
               <a
-                href="/resume.pdf"
+                href="/Pranit_Kumar_Resume.pdf"
                 target="_blank"
                 rel="noreferrer"
                 style={{
@@ -787,7 +787,7 @@ export default function ScrollExpandHero({
                 </a>
 
                 <a
-                  href="/resume.pdf"
+                  href="/Pranit_Kumar_Resume.pdf"
                   target="_blank"
                   rel="noreferrer"
                   style={{
